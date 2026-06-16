@@ -205,7 +205,39 @@ textarea {
   min-height: 80px;
 }
 
+/* ─── Orbit Visual Animations ─── */
+@keyframes orbit-full-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes node-pulse {
+  0%, 100% { opacity: 0.75; }
+  50%       { opacity: 1; }
+}
+
+@keyframes core-pulse {
+  0%, 100% { box-shadow: 0 0 28px 6px rgba(232,168,56,0.35), 0 0 60px 12px rgba(232,168,56,0.12); }
+  50%       { box-shadow: 0 0 40px 10px rgba(232,168,56,0.55), 0 0 80px 20px rgba(232,168,56,0.20); }
+}
+
+/* Single slow spin for the whole node group */
+.orbit-full-spin {
+  animation: orbit-full-spin 80s linear infinite;
+}
+
+.core-glow { animation: core-pulse 3s ease-in-out infinite; }
+
+/* Respect reduced-motion — pause everything */
+@media (prefers-reduced-motion: reduce) {
+  .orbit-full-spin,
+  .core-glow {
+    animation-play-state: paused;
+  }
+}
+
 /* ─── Landing Entrance Animations ─── */
+
 @keyframes fade-up {
   from {
     opacity: 0;
