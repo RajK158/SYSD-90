@@ -81,16 +81,17 @@ export default function RoadmapPage() {
     return { done, total: checklistLength, pct: Math.round((done / checklistLength) * 100) }
   }
 
-  const MONTH_COLORS = [
-    'border-blue-500',
-    'border-purple-500',
-    'border-emerald-500',
+  // Month left-border colors applied via CSS class in globals.css
+  const MONTH_LEFT_BORDER = [
+    '#E8A838',   // Month 1 — amber
+    '#a78bfa',   // Month 2 — violet
+    '#10b981',   // Month 3 — emerald
   ]
 
   const MONTH_BADGE = [
-    'bg-blue-500/10 text-blue-400',
-    'bg-purple-500/10 text-purple-400',
-    'bg-emerald-500/10 text-emerald-400',
+    'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+    'bg-violet-500/10 text-violet-400 border border-violet-500/20',
+    'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
   ]
 
   const MONTH_NAMES = ['Month 1: Foundations', 'Month 2: Distributed Systems', 'Month 3: Interview Prep']
@@ -103,11 +104,11 @@ export default function RoadmapPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-black text-white flex items-center gap-2">
-            <Map className="w-6 h-6 text-blue-400" />
+          <h1 className="text-2xl font-black flex items-center gap-2" style={{ color: '#F0EDED' }}>
+            <Map className="w-6 h-6" style={{ color: '#E8A838' }} />
             12-Week Roadmap
           </h1>
-          <p className="text-slate-400 text-sm mt-1">Your structured path from networking basics to interview-ready system designs</p>
+          <p className="text-sm mt-1" style={{ color: '#9A9494' }}>Your structured path from networking basics to interview-ready system designs</p>
         </div>
 
         {/* Overall progress */}
@@ -119,12 +120,13 @@ export default function RoadmapPage() {
               return acc + w.checklist.filter((_, i) => completions[`roadmap-w${w.week}-c${i}`]).length
             }, 0)
             const pct = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0
+            const [accent, bar] = month === 1 ? ['#E8A838', '#E8A838'] : month === 2 ? ['#a78bfa', '#a78bfa'] : ['#10b981', '#10b981']
             return (
-              <div key={month} className="bg-[#0f1117] border border-[#1e2535] rounded-xl p-4">
-                <div className="text-xs text-slate-500 mb-1">{MONTH_NAMES[month - 1]}</div>
-                <div className={`text-xl font-black mb-2 ${month === 1 ? 'text-blue-400' : month === 2 ? 'text-purple-400' : 'text-emerald-400'}`}>{pct}%</div>
-                <div className="h-1.5 bg-[#1e2535] rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full ${month === 1 ? 'bg-blue-500' : month === 2 ? 'bg-purple-500' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }} />
+              <div key={month} style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 12, padding: '14px 16px' }}>
+                <div className="text-xs mb-1" style={{ color: '#5C5757' }}>{MONTH_NAMES[month - 1]}</div>
+                <div className="text-xl font-black mb-2" style={{ color: accent }}>{pct}%</div>
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#1F1F1F' }}>
+                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: bar }} />
                 </div>
               </div>
             )
@@ -134,7 +136,7 @@ export default function RoadmapPage() {
         {/* Weeks by month */}
         {byMonth.map((monthWeeks, monthIdx) => (
           <div key={monthIdx}>
-            <div className={`flex items-center gap-2 mb-3`}>
+            <div className="flex items-center gap-2 mb-3">
               <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${MONTH_BADGE[monthIdx]}`}>{MONTH_NAMES[monthIdx]}</span>
             </div>
 
@@ -147,12 +149,14 @@ export default function RoadmapPage() {
                 return (
                   <div
                     key={week.week}
-                    className={cn(
-                      'bg-[#0f1117] border rounded-2xl overflow-hidden transition-all duration-200',
-                      isCurrent ? 'border-blue-500/40 shadow-lg shadow-blue-500/5' : 'border-[#1e2535]',
-                      MONTH_COLORS[monthIdx]
-                    )}
-                    style={{ borderLeft: `3px solid ${monthIdx === 0 ? '#3b82f6' : monthIdx === 1 ? '#8b5cf6' : '#10b981'}` }}
+                    className="overflow-hidden transition-all duration-200"
+                    style={{
+                      background: '#111111',
+                      border: isCurrent ? `1px solid rgba(232,168,56,0.30)` : '1px solid #1F1F1F',
+                      borderLeft: `3px solid ${MONTH_LEFT_BORDER[monthIdx]}`,
+                      borderRadius: 16,
+                      boxShadow: isCurrent ? '0 4px 24px rgba(232,168,56,0.06)' : 'none',
+                    }}
                   >
                     {/* Week header */}
                     <button
@@ -161,43 +165,43 @@ export default function RoadmapPage() {
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-bold text-slate-500">WEEK {week.week}</span>
-                          {isCurrent && <span className="text-[10px] font-bold bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">CURRENT</span>}
+                          <span className="text-xs font-bold tracking-wider" style={{ color: '#5C5757' }}>WEEK {week.week}</span>
+                          {isCurrent && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(232,168,56,0.12)', color: '#E8A838' }}>CURRENT</span>}
                         </div>
-                        <h3 className="font-bold text-white text-sm">{week.title}</h3>
+                        <h3 className="font-bold text-sm" style={{ color: '#F0EDED' }}>{week.title}</h3>
                       </div>
 
                       {/* Progress */}
                       <div className="flex items-center gap-3 flex-shrink-0">
                         <div className="hidden sm:block">
-                          <div className="w-24 h-1.5 bg-[#1e2535] rounded-full overflow-hidden">
+                          <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ background: '#1F1F1F' }}>
                             <div
-                              className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all"
-                              style={{ width: `${progress.pct}%` }}
+                              className="h-full rounded-full transition-all"
+                              style={{ width: `${progress.pct}%`, background: `linear-gradient(90deg, ${MONTH_LEFT_BORDER[monthIdx]}, ${MONTH_LEFT_BORDER[monthIdx]}aa)` }}
                             />
                           </div>
-                          <div className="text-[10px] text-slate-500 mt-0.5 text-right">{progress.done}/{progress.total}</div>
+                          <div className="text-[10px] mt-0.5 text-right" style={{ color: '#5C5757' }}>{progress.done}/{progress.total}</div>
                         </div>
                         {isExpanded
-                          ? <ChevronDown className="w-4 h-4 text-slate-500" />
-                          : <ChevronRight className="w-4 h-4 text-slate-500" />
+                          ? <ChevronDown className="w-4 h-4" style={{ color: '#5C5757' }} />
+                          : <ChevronRight className="w-4 h-4" style={{ color: '#5C5757' }} />
                         }
                       </div>
                     </button>
 
                     {/* Expanded content */}
                     {isExpanded && (
-                      <div className="px-5 pb-5 border-t border-[#1e2535] pt-5 space-y-5">
+                      <div className="px-5 pb-5 pt-5 space-y-5" style={{ borderTop: '1px solid #1F1F1F' }}>
                         <div className="grid sm:grid-cols-2 gap-5">
                           {/* Topics */}
                           <div>
-                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                            <h4 className="text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1" style={{ color: '#9A9494' }}>
                               <Map className="w-3 h-3" /> Topics to Learn
                             </h4>
                             <ul className="space-y-1">
                               {week.topics.map(t => (
-                                <li key={t} className="text-sm text-slate-300 flex items-start gap-1.5">
-                                  <span className="text-blue-400 mt-1 flex-shrink-0">→</span> {t}
+                                <li key={t} className="text-sm flex items-start gap-1.5" style={{ color: '#D4D0D0' }}>
+                                  <span className="mt-1 flex-shrink-0" style={{ color: MONTH_LEFT_BORDER[monthIdx] }}>→</span> {t}
                                 </li>
                               ))}
                             </ul>
@@ -205,20 +209,20 @@ export default function RoadmapPage() {
 
                           {/* DSA Focus */}
                           <div>
-                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                            <h4 className="text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1" style={{ color: '#9A9494' }}>
                               <Code2 className="w-3 h-3" /> DSA Focus
                             </h4>
                             <ul className="space-y-1">
                               {week.dsaFocus.map(t => (
-                                <li key={t} className="text-sm text-slate-300 flex items-start gap-1.5">
-                                  <span className="text-purple-400 mt-1 flex-shrink-0">→</span> {t}
+                                <li key={t} className="text-sm flex items-start gap-1.5" style={{ color: '#D4D0D0' }}>
+                                  <span className="mt-1 flex-shrink-0" style={{ color: '#a78bfa' }}>→</span> {t}
                                 </li>
                               ))}
                             </ul>
                             <div className="mt-3 space-y-1">
                               {week.dsaTargets.map(target => (
-                                <div key={target.topic} className="text-xs text-slate-500">
-                                  {target.topic}: <span className="text-slate-300 font-medium">{target.min}{target.max > target.min ? `–${target.max}` : ''} problems</span>
+                                <div key={target.topic} className="text-xs" style={{ color: '#5C5757' }}>
+                                  {target.topic}: <span className="font-medium" style={{ color: '#9A9494' }}>{target.min}{target.max > target.min ? `–${target.max}` : ''} problems</span>
                                 </div>
                               ))}
                             </div>
@@ -227,21 +231,21 @@ export default function RoadmapPage() {
 
                         {/* Practical Exercises */}
                         <div>
-                          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                          <h4 className="text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1" style={{ color: '#9A9494' }}>
                             <Wrench className="w-3 h-3" /> Practical Exercises
                           </h4>
                           <ul className="space-y-1">
                             {week.practicalExercises.map(ex => (
-                              <li key={ex} className="text-sm text-slate-300 flex items-start gap-1.5">
-                                <span className="text-cyan-400 mt-1 flex-shrink-0">→</span> {ex}
+                              <li key={ex} className="text-sm flex items-start gap-1.5" style={{ color: '#D4D0D0' }}>
+                                <span className="mt-1 flex-shrink-0" style={{ color: '#34d399' }}>→</span> {ex}
                               </li>
                             ))}
                           </ul>
                         </div>
 
-                        {/* Checklist */}
+                        {/* Checklist — only marks complete on explicit user click */}
                         <div>
-                          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                          <h4 className="text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1" style={{ color: '#9A9494' }}>
                             <ListChecks className="w-3 h-3" /> End-of-Week Checklist
                           </h4>
                           <div className="space-y-2">
@@ -252,13 +256,19 @@ export default function RoadmapPage() {
                                 <button
                                   key={idx}
                                   onClick={() => toggleChecklist(week.week, idx)}
-                                  className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all ${done ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-[#161b26] border-[#1e2535] hover:border-[#2d3748]'}`}
+                                  className="w-full flex items-start gap-3 p-3 rounded-xl text-left transition-all"
+                                  style={{
+                                    background: done ? 'rgba(52,211,153,0.05)' : '#161616',
+                                    border: done ? '1px solid rgba(52,211,153,0.18)' : '1px solid #1F1F1F',
+                                  }}
+                                  onMouseEnter={e => { if (!done) e.currentTarget.style.borderColor = '#2A2A2A' }}
+                                  onMouseLeave={e => { if (!done) e.currentTarget.style.borderColor = '#1F1F1F' }}
                                 >
                                   {done
-                                    ? <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                                    : <Circle className="w-4 h-4 text-slate-600 flex-shrink-0 mt-0.5" />
+                                    ? <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#34d399' }} />
+                                    : <Circle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#3A3A3A' }} />
                                   }
-                                  <span className={`text-sm ${done ? 'line-through text-slate-500' : 'text-slate-200'}`}>{item}</span>
+                                  <span className="text-sm" style={{ color: done ? '#5C5757' : '#D4D0D0', textDecoration: done ? 'line-through' : 'none' }}>{item}</span>
                                 </button>
                               )
                             })}
@@ -267,13 +277,13 @@ export default function RoadmapPage() {
 
                         {/* Deliverables */}
                         <div>
-                          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                          <h4 className="text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1" style={{ color: '#9A9494' }}>
                             <Package className="w-3 h-3" /> Weekly Deliverables
                           </h4>
                           <ul className="space-y-1">
                             {week.deliverables.map(d => (
-                              <li key={d} className="text-sm text-slate-400 flex items-start gap-1.5">
-                                <span className="text-emerald-400 mt-1 flex-shrink-0">✓</span> {d}
+                              <li key={d} className="text-sm flex items-start gap-1.5" style={{ color: '#9A9494' }}>
+                                <span className="mt-1 flex-shrink-0" style={{ color: '#34d399' }}>✓</span> {d}
                               </li>
                             ))}
                           </ul>

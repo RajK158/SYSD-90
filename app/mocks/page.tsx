@@ -120,55 +120,53 @@ export default function MocksPage() {
     <AppShell>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-black text-white flex items-center gap-2">
-              <Mic2 className="w-6 h-6 text-cyan-400" />
-              Mock Interviews
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">
-              {mocks.length} mocks · Avg score: {avgScore}/10
-            </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-black flex items-center gap-2" style={{ color: '#F0EDED' }}>
+                <Mic2 className="w-6 h-6" style={{ color: '#E8A838' }} />
+                Mock Interviews
+              </h1>
+              <p className="text-sm mt-1" style={{ color: '#9A9494' }}>
+                {mocks.length} mocks · Avg score: {avgScore}/10
+              </p>
+            </div>
+            <button
+              onClick={() => { setForm(emptyForm); setEditingId(null); setShowModal(true) }}
+              className="flex items-center gap-2 font-semibold px-4 py-2.5 rounded-xl text-sm transition-all"
+              style={{ background: 'linear-gradient(135deg, #E8A838, #D4761C)', color: '#0C0C0C', boxShadow: '0 4px 14px rgba(232,168,56,0.22)' }}
+            >
+              <Plus className="w-4 h-4" />
+              Log Mock
+            </button>
           </div>
-          <button
-            onClick={() => { setForm(emptyForm); setEditingId(null); setShowModal(true) }}
-            className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm"
-          >
-            <Plus className="w-4 h-4" />
-            Log Mock
-          </button>
-        </div>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-[#0f1117] border border-[#1e2535] rounded-xl p-4 text-center">
-            <div className="text-2xl font-black text-cyan-400">{mocks.length}</div>
-            <div className="text-xs text-slate-500">Total Mocks</div>
-          </div>
-          <div className="bg-[#0f1117] border border-[#1e2535] rounded-xl p-4 text-center">
-            <div className="text-2xl font-black text-blue-400">{sdMocks.length}</div>
-            <div className="text-xs text-slate-500">System Design</div>
-          </div>
-          <div className="bg-[#0f1117] border border-[#1e2535] rounded-xl p-4 text-center">
-            <div className="text-2xl font-black text-purple-400">{dsaMocks.length}</div>
-            <div className="text-xs text-slate-500">DSA Mocks</div>
-          </div>
+          {[
+            { label: 'Total Mocks',   value: mocks.length,    color: '#E8A838' },
+            { label: 'DSA Mocks',     value: dsaMocks.length, color: '#34d399' },
+          ].map(({ label, value, color }) => (
+            <div key={label} className="text-center p-4" style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 12 }}>
+              <div className="text-2xl font-black" style={{ color }}>{value}</div>
+              <div className="text-xs" style={{ color: '#5C5757' }}>{label}</div>
+            </div>
+          ))}
         </div>
 
         {/* System Design Framework Reference Card */}
-        <div className="bg-gradient-to-br from-blue-600/10 to-purple-600/10 border border-blue-500/20 rounded-2xl overflow-hidden">
+        <div className="overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(232,168,56,0.06), rgba(212,118,28,0.03))', border: '1px solid rgba(232,168,56,0.15)', borderRadius: 16 }}>
           <button
             className="w-full flex items-center justify-between px-5 py-4 text-left"
             onClick={() => setShowFramework(!showFramework)}
           >
-            <span className="font-bold text-white text-sm">📋 System Design Answer Framework</span>
-            <span className="text-xs text-slate-400">{showFramework ? 'Hide' : 'Show'}</span>
+            <span className="font-bold text-sm" style={{ color: '#F0EDED' }}>📋 System Design Answer Framework</span>
+            <span className="text-xs" style={{ color: '#9A9494' }}>{showFramework ? 'Hide' : 'Show'}</span>
           </button>
           {showFramework && (
             <div className="px-5 pb-4 grid sm:grid-cols-2 gap-2">
               {SD_FRAMEWORK.map(step => (
-                <div key={step} className="flex items-start gap-2 text-xs text-slate-300">
-                  <span className="text-blue-400 flex-shrink-0 mt-0.5">▸</span>
+                <div key={step} className="flex items-start gap-2 text-xs" style={{ color: '#9A9494' }}>
+                  <span className="flex-shrink-0 mt-0.5" style={{ color: '#E8A838' }}>▸</span>
                   {step}
                 </div>
               ))}
@@ -178,35 +176,42 @@ export default function MocksPage() {
 
         {/* Mock list */}
         {loading ? (
-          <div className="text-center text-slate-500 py-12">Loading...</div>
+          <div className="text-center py-12" style={{ color: '#5C5757' }}>Loading...</div>
         ) : mocks.length === 0 ? (
           <div className="text-center py-16">
-            <Mic2 className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-400 font-medium">No mocks logged yet</p>
-            <p className="text-slate-500 text-sm mt-1">Start practicing and track your progress</p>
+            <Mic2 className="w-10 h-10 mx-auto mb-3" style={{ color: '#3A3A3A' }} />
+            <p className="font-medium" style={{ color: '#9A9494' }}>No mocks logged yet</p>
+            <p className="text-sm mt-1" style={{ color: '#5C5757' }}>Start practicing and track your progress</p>
           </div>
         ) : (
           <div className="space-y-3">
             {mocks.map(mock => (
-              <div key={mock.id} className="bg-[#0f1117] border border-[#1e2535] rounded-2xl p-5 group">
+              <div key={mock.id} className="p-5 group" style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 16 }}>
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${mock.mock_type === 'System Design' ? 'bg-blue-500/15 text-blue-400' : 'bg-purple-500/15 text-purple-400'}`}>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{
+                        background: mock.mock_type === 'System Design' ? 'rgba(167,139,250,0.12)' : 'rgba(52,211,153,0.12)',
+                        color: mock.mock_type === 'System Design' ? '#a78bfa' : '#34d399',
+                      }}>
                         {mock.mock_type}
                       </span>
-                      <span className="text-xs text-slate-500">{format(parseISO(mock.date), 'MMM d, yyyy')}</span>
-                      <span className="text-xs text-slate-500">{mock.duration_min} min</span>
+                      <span className="text-xs" style={{ color: '#5C5757' }}>{format(parseISO(mock.date), 'MMM d, yyyy')}</span>
+                      <span className="text-xs" style={{ color: '#5C5757' }}>{mock.duration_min} min</span>
                     </div>
-                    <h3 className="font-bold text-white">{mock.topic}</h3>
+                    <h3 className="font-bold" style={{ color: '#F0EDED' }}>{mock.topic}</h3>
                   </div>
                   <div className="flex items-center gap-2">
                     <ScoreStars score={mock.score} />
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => openEdit(mock)} className="p-1.5 rounded-lg hover:bg-blue-500/10 text-slate-500 hover:text-blue-400 transition-colors">
+                      <button onClick={() => openEdit(mock)} className="p-1.5 rounded-lg transition-colors" style={{ color: '#5C5757' }}
+                        onMouseEnter={e => { e.currentTarget.style.color = '#E8A838'; e.currentTarget.style.background = 'rgba(232,168,56,0.08)' }}
+                        onMouseLeave={e => { e.currentTarget.style.color = '#5C5757'; e.currentTarget.style.background = 'transparent' }}>
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
-                      <button onClick={() => deleteMock(mock.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-colors">
+                      <button onClick={() => deleteMock(mock.id)} className="p-1.5 rounded-lg transition-colors" style={{ color: '#5C5757' }}
+                        onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'rgba(239,68,68,0.08)' }}
+                        onMouseLeave={e => { e.currentTarget.style.color = '#5C5757'; e.currentTarget.style.background = 'transparent' }}>
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -216,20 +221,20 @@ export default function MocksPage() {
                 <div className="grid sm:grid-cols-3 gap-3 text-sm">
                   {mock.went_well && (
                     <div>
-                      <div className="text-[10px] font-bold text-emerald-400 uppercase mb-1">✓ Went Well</div>
-                      <p className="text-slate-400 text-xs">{mock.went_well}</p>
+                      <div className="text-[10px] font-bold uppercase mb-1" style={{ color: '#34d399' }}>✓ Went Well</div>
+                      <p className="text-xs" style={{ color: '#9A9494' }}>{mock.went_well}</p>
                     </div>
                   )}
                   {mock.went_wrong && (
                     <div>
-                      <div className="text-[10px] font-bold text-red-400 uppercase mb-1">✗ Went Wrong</div>
-                      <p className="text-slate-400 text-xs">{mock.went_wrong}</p>
+                      <div className="text-[10px] font-bold uppercase mb-1" style={{ color: '#f87171' }}>✗ Went Wrong</div>
+                      <p className="text-xs" style={{ color: '#9A9494' }}>{mock.went_wrong}</p>
                     </div>
                   )}
                   {mock.action_items && (
                     <div>
-                      <div className="text-[10px] font-bold text-blue-400 uppercase mb-1">→ Action Items</div>
-                      <p className="text-slate-400 text-xs">{mock.action_items}</p>
+                      <div className="text-[10px] font-bold uppercase mb-1" style={{ color: '#E8A838' }}>→ Action Items</div>
+                      <p className="text-xs" style={{ color: '#9A9494' }}>{mock.action_items}</p>
                     </div>
                   )}
                 </div>
@@ -241,11 +246,13 @@ export default function MocksPage() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0f1117] border border-[#1e2535] rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 16 }}>
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-white">{editingId ? 'Edit Mock' : 'Log Mock Interview'}</h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-500 hover:text-white transition-colors">
+              <h3 className="font-bold" style={{ color: '#F0EDED' }}>{editingId ? 'Edit Mock' : 'Log Mock Interview'}</h3>
+              <button onClick={() => setShowModal(false)} style={{ color: '#5C5757' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#F0EDED')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#5C5757')}>
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -253,53 +260,53 @@ export default function MocksPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Type</label>
-                  <select value={form.mock_type} onChange={e => setForm({ ...form, mock_type: e.target.value as MockType })} className="w-full bg-[#161b26] border border-[#1e2535] focus:border-cyan-500 text-white rounded-xl px-3 py-2.5 text-sm outline-none">
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: '#9A9494' }}>Type</label>
+                  <select value={form.mock_type} onChange={e => setForm({ ...form, mock_type: e.target.value as MockType })} className="w-full text-sm rounded-xl px-3 py-2.5 outline-none" style={{ background: '#0C0C0C', border: '1px solid #2A2A2A', color: '#F0EDED' }}>
                     <option>System Design</option>
                     <option>DSA</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Date</label>
-                  <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className="w-full bg-[#161b26] border border-[#1e2535] focus:border-cyan-500 text-white rounded-xl px-3 py-2.5 text-sm outline-none" />
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: '#9A9494' }}>Date</label>
+                  <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className="w-full text-sm rounded-xl px-3 py-2.5 outline-none" style={{ background: '#0C0C0C', border: '1px solid #2A2A2A', color: '#F0EDED' }} />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Topic / Problem</label>
-                <input value={form.topic} onChange={e => setForm({ ...form, topic: e.target.value })} placeholder="e.g. URL Shortener, Two Sum" className="w-full bg-[#161b26] border border-[#1e2535] focus:border-cyan-500 text-white rounded-xl px-3 py-2.5 text-sm outline-none" />
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: '#9A9494' }}>Topic / Problem</label>
+                <input value={form.topic} onChange={e => setForm({ ...form, topic: e.target.value })} placeholder="e.g. URL Shortener, Two Sum" className="w-full text-sm rounded-xl px-3 py-2.5 outline-none" style={{ background: '#0C0C0C', border: '1px solid #2A2A2A', color: '#F0EDED' }} />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Duration (min)</label>
-                  <input type="number" value={form.duration_min} onChange={e => setForm({ ...form, duration_min: Number(e.target.value) })} className="w-full bg-[#161b26] border border-[#1e2535] focus:border-cyan-500 text-white rounded-xl px-3 py-2.5 text-sm outline-none" />
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: '#9A9494' }}>Duration (min)</label>
+                  <input type="number" value={form.duration_min} onChange={e => setForm({ ...form, duration_min: Number(e.target.value) })} className="w-full text-sm rounded-xl px-3 py-2.5 outline-none" style={{ background: '#0C0C0C', border: '1px solid #2A2A2A', color: '#F0EDED' }} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Score (0–10)</label>
-                  <input type="number" min={0} max={10} value={form.score} onChange={e => setForm({ ...form, score: Number(e.target.value) })} className="w-full bg-[#161b26] border border-[#1e2535] focus:border-cyan-500 text-white rounded-xl px-3 py-2.5 text-sm outline-none" />
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: '#9A9494' }}>Score (0–10)</label>
+                  <input type="number" min={0} max={10} value={form.score} onChange={e => setForm({ ...form, score: Number(e.target.value) })} className="w-full text-sm rounded-xl px-3 py-2.5 outline-none" style={{ background: '#0C0C0C', border: '1px solid #2A2A2A', color: '#F0EDED' }} />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-emerald-400 mb-1.5 uppercase tracking-wider">What Went Well</label>
-                <textarea value={form.went_well} onChange={e => setForm({ ...form, went_well: e.target.value })} placeholder="Strengths to keep..." rows={2} className="w-full bg-[#161b26] border border-[#1e2535] focus:border-cyan-500 text-white rounded-xl px-3 py-2.5 text-sm outline-none resize-none" />
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: '#34d399' }}>What Went Well</label>
+                <textarea value={form.went_well} onChange={e => setForm({ ...form, went_well: e.target.value })} placeholder="Strengths to keep..." rows={2} className="w-full text-sm rounded-xl px-3 py-2.5 outline-none resize-none" style={{ background: '#0C0C0C', border: '1px solid #2A2A2A', color: '#F0EDED' }} />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-red-400 mb-1.5 uppercase tracking-wider">What Went Wrong</label>
-                <textarea value={form.went_wrong} onChange={e => setForm({ ...form, went_wrong: e.target.value })} placeholder="Gaps to work on..." rows={2} className="w-full bg-[#161b26] border border-[#1e2535] focus:border-cyan-500 text-white rounded-xl px-3 py-2.5 text-sm outline-none resize-none" />
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: '#f87171' }}>What Went Wrong</label>
+                <textarea value={form.went_wrong} onChange={e => setForm({ ...form, went_wrong: e.target.value })} placeholder="Gaps to work on..." rows={2} className="w-full text-sm rounded-xl px-3 py-2.5 outline-none resize-none" style={{ background: '#0C0C0C', border: '1px solid #2A2A2A', color: '#F0EDED' }} />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-blue-400 mb-1.5 uppercase tracking-wider">Action Items</label>
-                <textarea value={form.action_items} onChange={e => setForm({ ...form, action_items: e.target.value })} placeholder="What to study before next mock..." rows={2} className="w-full bg-[#161b26] border border-[#1e2535] focus:border-cyan-500 text-white rounded-xl px-3 py-2.5 text-sm outline-none resize-none" />
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: '#E8A838' }}>Action Items</label>
+                <textarea value={form.action_items} onChange={e => setForm({ ...form, action_items: e.target.value })} placeholder="What to study before next mock..." rows={2} className="w-full text-sm rounded-xl px-3 py-2.5 outline-none resize-none" style={{ background: '#0C0C0C', border: '1px solid #2A2A2A', color: '#F0EDED' }} />
               </div>
             </div>
 
             <div className="flex gap-3 mt-5">
-              <button onClick={() => setShowModal(false)} className="flex-1 bg-[#1e2535] hover:bg-[#2d3748] text-slate-300 font-medium py-2.5 rounded-xl transition-colors text-sm">Cancel</button>
-              <button onClick={saveMock} disabled={!form.topic || saving} className="flex-1 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl transition-colors text-sm">
+              <button onClick={() => setShowModal(false)} className="flex-1 font-medium py-2.5 rounded-xl text-sm" style={{ background: '#1F1F1F', color: '#9A9494' }}>Cancel</button>
+              <button onClick={saveMock} disabled={!form.topic || saving} className="flex-1 font-semibold py-2.5 rounded-xl text-sm disabled:opacity-40" style={{ background: 'linear-gradient(135deg, #E8A838, #D4761C)', color: '#0C0C0C' }}>
                 {saving ? 'Saving...' : editingId ? 'Update' : 'Save Mock'}
               </button>
             </div>

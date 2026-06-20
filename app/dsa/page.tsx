@@ -48,7 +48,15 @@ const emptyForm = {
 }
 
 const INPUT_CLASS =
-  'w-full bg-[#161b26] border border-[#1e2535] focus:border-purple-500 text-white rounded-xl px-3 py-2.5 text-sm outline-none transition-colors'
+  'w-full text-sm text-[#F0EDED] outline-none transition-colors'
+
+const inputStyle = {
+  background: '#0C0C0C',
+  border: '1px solid #2A2A2A',
+  borderRadius: 10,
+  padding: '10px 12px',
+  color: '#F0EDED',
+} as const
 
 export default function DSAPage() {
   const supabase = createClient()
@@ -169,13 +177,12 @@ export default function DSAPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-black text-white flex items-center gap-2">
-              <Code2 className="w-6 h-6 text-purple-400" />
+            <h1 className="text-2xl font-black flex items-center gap-2" style={{ color: '#F0EDED' }}>
+              <Code2 className="w-6 h-6" style={{ color: '#E8A838' }} />
               DSA Tracker
             </h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Track your LeetCode journey — {solved.length}/150 NeetCode problems
-              solved
+            <p className="text-sm mt-1" style={{ color: '#9A9494' }}>
+              Track your LeetCode journey — {solved.length}/150 NeetCode problems solved
             </p>
           </div>
           <button
@@ -184,7 +191,8 @@ export default function DSAPage() {
               setEditingId(null)
               setShowModal(true)
             }}
-            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm"
+            className="flex items-center gap-2 font-semibold px-4 py-2.5 rounded-xl text-sm transition-all"
+            style={{ background: 'linear-gradient(135deg, #E8A838, #D4761C)', color: '#0C0C0C', boxShadow: '0 4px 14px rgba(232,168,56,0.22)' }}
           >
             <Plus className="w-4 h-4" />
             Log Problem
@@ -193,49 +201,33 @@ export default function DSAPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <div className="bg-[#0f1117] border border-[#1e2535] rounded-xl p-4 text-center">
-            <div className="text-2xl font-black text-purple-400">
-              {solved.length}
+          {[
+            { label: 'Total Solved', value: solved.length, color: '#E8A838' },
+            { label: 'Easy',         value: easy,          color: '#34d399' },
+            { label: 'Medium',       value: medium,        color: '#f59e0b' },
+            { label: 'Hard',         value: hard,          color: '#ef4444' },
+            { label: 'To Revisit',   value: toRevisit,     color: '#a78bfa' },
+          ].map(({ label, value, color }) => (
+            <div key={label} className="text-center p-4" style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 12 }}>
+              <div className="text-2xl font-black" style={{ color }}>{value}</div>
+              <div className="text-xs" style={{ color: '#5C5757' }}>{label}</div>
             </div>
-            <div className="text-xs text-slate-500">Total Solved</div>
-          </div>
-          <div className="bg-[#0f1117] border border-[#1e2535] rounded-xl p-4 text-center">
-            <div className="text-2xl font-black text-emerald-400">{easy}</div>
-            <div className="text-xs text-slate-500">Easy</div>
-          </div>
-          <div className="bg-[#0f1117] border border-[#1e2535] rounded-xl p-4 text-center">
-            <div className="text-2xl font-black text-amber-400">{medium}</div>
-            <div className="text-xs text-slate-500">Medium</div>
-          </div>
-          <div className="bg-[#0f1117] border border-[#1e2535] rounded-xl p-4 text-center">
-            <div className="text-2xl font-black text-red-400">{hard}</div>
-            <div className="text-xs text-slate-500">Hard</div>
-          </div>
-          <div className="bg-[#0f1117] border border-[#1e2535] rounded-xl p-4 text-center">
-            <div className="text-2xl font-black text-amber-400">{toRevisit}</div>
-            <div className="text-xs text-slate-500">To Revisit</div>
-          </div>
+          ))}
         </div>
 
         {/* Progress bar toward 150 */}
-        <div className="bg-[#0f1117] border border-[#1e2535] rounded-xl p-4">
+        <div className="p-4" style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 12 }}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-slate-300">
-              NeetCode 150 Progress
-            </span>
-            <span className="text-sm font-bold text-purple-400">
-              {Math.round((solved.length / 150) * 100)}%
-            </span>
+            <span className="text-sm font-semibold" style={{ color: '#9A9494' }}>NeetCode 150 Progress</span>
+            <span className="text-sm font-bold" style={{ color: '#E8A838' }}>{Math.round((solved.length / 150) * 100)}%</span>
           </div>
-          <div className="h-2 bg-[#1e2535] rounded-full overflow-hidden">
+          <div className="h-2 rounded-full overflow-hidden" style={{ background: '#1F1F1F' }}>
             <div
-              className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-700"
-              style={{
-                width: `${Math.min((solved.length / 150) * 100, 100)}%`,
-              }}
+              className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${Math.min((solved.length / 150) * 100, 100)}%`, background: 'linear-gradient(90deg, #E8A838, #D4761C)' }}
             />
           </div>
-          <div className="flex justify-between text-xs text-slate-500 mt-1">
+          <div className="flex justify-between text-xs mt-1" style={{ color: '#5C5757' }}>
             <span>{solved.length} solved</span>
             <span>150 target</span>
           </div>
@@ -243,25 +235,16 @@ export default function DSAPage() {
 
         {/* Topic breakdown */}
         {topicBreakdown.length > 0 && (
-          <div className="bg-[#0f1117] border border-[#1e2535] rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-slate-300 mb-3">
-              Problems by Topic
-            </h3>
+          <div className="p-4" style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 12 }}>
+            <h3 className="text-sm font-semibold mb-3" style={{ color: '#9A9494' }}>Problems by Topic</h3>
             <div className="space-y-2">
               {topicBreakdown.map(({ topic, count }) => (
                 <div key={topic} className="flex items-center gap-3">
-                  <span className="text-xs text-slate-400 w-40 flex-shrink-0 truncate">
-                    {topic}
-                  </span>
-                  <div className="flex-1 h-1.5 bg-[#1e2535] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-purple-500 rounded-full"
-                      style={{ width: `${Math.min((count / 10) * 100, 100)}%` }}
-                    />
+                  <span className="text-xs w-40 flex-shrink-0 truncate" style={{ color: '#9A9494' }}>{topic}</span>
+                  <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: '#1F1F1F' }}>
+                    <div className="h-full rounded-full" style={{ width: `${Math.min((count / 10) * 100, 100)}%`, background: '#E8A838' }} />
                   </div>
-                  <span className="text-xs font-bold text-purple-400 w-4">
-                    {count}
-                  </span>
+                  <span className="text-xs font-bold w-4" style={{ color: '#E8A838' }}>{count}</span>
                 </div>
               ))}
             </div>
@@ -271,33 +254,24 @@ export default function DSAPage() {
         {/* Filters */}
         <div className="flex flex-wrap gap-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#5C5757' }} />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search problems..."
-              className="bg-[#0f1117] border border-[#1e2535] text-white pl-9 pr-4 py-2 rounded-xl text-sm outline-none focus:border-purple-500 w-48 transition-colors"
+              className="pl-9 pr-4 py-2 rounded-xl text-sm outline-none w-48 transition-colors"
+              style={{ background: '#111111', border: '1px solid #1F1F1F', color: '#F0EDED' }}
+              onFocus={e => (e.currentTarget.style.borderColor = 'rgba(232,168,56,0.5)')}
+              onBlur={e => (e.currentTarget.style.borderColor = '#1F1F1F')}
             />
           </div>
-          <FilterSelect
-            value={filterTopic}
-            onChange={setFilterTopic}
-            options={['All', ...DSA_TOPICS]}
-          />
-          <FilterSelect
-            value={filterDiff}
-            onChange={setFilterDiff}
-            options={['All', 'Easy', 'Medium', 'Hard']}
-          />
-          <FilterSelect
-            value={filterStatus}
-            onChange={setFilterStatus}
-            options={['All', 'Solved', 'Attempted', 'To Revisit']}
-          />
+          <FilterSelect value={filterTopic}  onChange={setFilterTopic}  options={['All', ...DSA_TOPICS]} />
+          <FilterSelect value={filterDiff}   onChange={setFilterDiff}   options={['All', 'Easy', 'Medium', 'Hard']} />
+          <FilterSelect value={filterStatus} onChange={setFilterStatus} options={['All', 'Solved', 'Attempted', 'To Revisit']} />
         </div>
 
         {/* Problems table */}
-        <div className="bg-[#0f1117] border border-[#1e2535] rounded-2xl overflow-hidden">
+        <div className="overflow-hidden" style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 16 }}>
           {loading ? (
             <div className="p-12 text-center text-slate-500">Loading...</div>
           ) : filtered.length === 0 ? (
@@ -413,16 +387,13 @@ export default function DSAPage() {
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0f1117] border border-[#1e2535] rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 16 }}>
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-white">
-                {editingId ? 'Edit Problem' : 'Log DSA Problem'}
-              </h3>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-slate-500 hover:text-white transition-colors"
-              >
+              <h3 className="font-bold" style={{ color: '#F0EDED' }}>{editingId ? 'Edit Problem' : 'Log DSA Problem'}</h3>
+              <button onClick={() => setShowModal(false)} className="transition-colors" style={{ color: '#5C5757' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#F0EDED')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#5C5757')}>
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -435,6 +406,9 @@ export default function DSAPage() {
                   onChange={e => setForm({ ...form, name: e.target.value })}
                   placeholder="e.g. Two Sum"
                   className={INPUT_CLASS}
+                  style={inputStyle}
+                  onFocus={e => (e.currentTarget.style.borderColor = 'rgba(232,168,56,0.5)')}
+                  onBlur={e => (e.currentTarget.style.borderColor = '#2A2A2A')}
                 />
               </FormField>
 
@@ -560,14 +534,16 @@ export default function DSAPage() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowModal(false)}
-                className="flex-1 bg-[#1e2535] hover:bg-[#2d3748] text-slate-300 font-medium py-2.5 rounded-xl transition-colors text-sm"
+                className="flex-1 font-medium py-2.5 rounded-xl transition-colors text-sm"
+                style={{ background: '#1F1F1F', color: '#9A9494' }}
               >
                 Cancel
               </button>
               <button
                 onClick={saveProblem}
                 disabled={!form.name || saving}
-                className="flex-1 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-xl transition-colors text-sm"
+                className="flex-1 font-semibold py-2.5 rounded-xl transition-all text-sm disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg, #E8A838, #D4761C)', color: '#0C0C0C', boxShadow: '0 4px 14px rgba(232,168,56,0.22)' }}
               >
                 {saving ? 'Saving...' : editingId ? 'Update' : 'Save Problem'}
               </button>
@@ -583,40 +559,23 @@ export default function DSAPage() {
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function FilterSelect({
-  value,
-  onChange,
-  options,
-}: {
-  value: string
-  onChange: (v: string) => void
-  options: string[]
-}) {
+function FilterSelect({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: string[] }) {
   return (
     <select
       value={value}
       onChange={e => onChange(e.target.value)}
-      className="bg-[#0f1117] border border-[#1e2535] text-slate-300 px-3 py-2 rounded-xl text-sm outline-none focus:border-purple-500 transition-colors"
+      className="px-3 py-2 rounded-xl text-sm outline-none transition-colors"
+      style={{ background: '#111111', border: '1px solid #1F1F1F', color: '#9A9494' }}
     >
-      {options.map(o => (
-        <option key={o} value={o}>
-          {o}
-        </option>
-      ))}
+      {options.map(o => <option key={o} value={o}>{o}</option>)}
     </select>
   )
 }
 
-function FormField({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}) {
+function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: '#9A9494' }}>
         {label}
       </label>
       {children}

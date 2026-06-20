@@ -4,43 +4,77 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils/cn'
 import {
-  LayoutDashboard,
-  Map,
-  Calendar,
-  Code2,
-  Server,
-  Mic2,
-  StickyNote,
-  BookOpen,
-  FolderGit2,
-  Settings,
-  Zap,
-  LogOut,
-  Menu,
-  X,
+  LayoutDashboard, Map, Calendar, Code2, Server, Mic2,
+  StickyNote, BookOpen, FolderGit2, Settings, LogOut,
+  Menu, X, ChevronLeft, ChevronRight,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect, createContext, useContext } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
-const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/roadmap', label: 'Roadmap', icon: Map },
-  { href: '/daily', label: 'Daily Tasks', icon: Calendar },
-  { href: '/dsa', label: 'DSA Tracker', icon: Code2 },
-  { href: '/case-studies', label: 'Case Studies', icon: Server },
-  { href: '/mocks', label: 'Mock Interviews', icon: Mic2 },
-  { href: '/notes', label: 'Notes', icon: StickyNote },
-  { href: '/resources', label: 'Resources', icon: BookOpen },
-  { href: '/portfolio', label: 'Portfolio', icon: FolderGit2 },
-  { href: '/settings', label: 'Settings', icon: Settings },
+/* ─── Sidebar collapsed context (shared with AppShell) ─── */
+export const SidebarContext = createContext<{ collapsed: boolean }>({ collapsed: false })
+export function useSidebarContext() { return useContext(SidebarContext) }
+
+/* ─── Nav structure ─── */
+const NAV_GROUPS = [
+  {
+    label: 'Mission',
+    items: [
+      { href: '/dashboard', label: 'My Orbit',     icon: LayoutDashboard },
+      { href: '/daily',     label: 'Daily Tasks',  icon: Calendar },
+    ],
+  },
+  {
+    label: 'Learning',
+    items: [
+      { href: '/roadmap', label: 'Roadmap',     icon: Map },
+      { href: '/dsa',     label: 'DSA Tracker', icon: Code2 },
+    ],
+  },
+  {
+    label: 'Practice',
+    items: [
+      { href: '/case-studies', label: 'Case Studies',    icon: Server },
+      { href: '/mocks',        label: 'Mock Interviews', icon: Mic2 },
+    ],
+  },
+  {
+    label: 'Workspace',
+    items: [
+      { href: '/notes',     label: 'Notes',     icon: StickyNote },
+      { href: '/resources', label: 'Resources', icon: BookOpen },
+      { href: '/portfolio', label: 'Portfolio', icon: FolderGit2 },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [
+      { href: '/settings', label: 'Settings', icon: Settings },
+    ],
+  },
 ]
 
+/* ─── Main export ─── */
 export default function Sidebar() {
   const pathname = usePathname()
-  const [mobileOpen, setMobileOpen] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+
+  const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  /* Persist collapsed state */
+  useEffect(() => {
+    const saved = localStorage.getItem('sidebar-collapsed')
+    if (saved !== null) setCollapsed(saved === 'true')
+  }, [])
+
+  const toggleCollapsed = () => {
+    const next = !collapsed
+    setCollapsed(next)
+    localStorage.setItem('sidebar-collapsed', String(next))
+  }
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -48,76 +82,175 @@ export default function Sidebar() {
     router.refresh()
   }
 
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className="px-4 py-5 border-b border-[#1e2535]">
-        <Link href="/dashboard" className="flex items-center gap-2.5" onClick={() => setMobileOpen(false)}>
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-            <Zap className="w-4 h-4 text-white" />
+  /* ─── Shared inner content ─── */
+  const SidebarContent = ({ forMobile = false }: { forMobile?: boolean }) => (
+    <div className="flex flex-col h-full relative">
+
+      {/* Brand */}
+      <div
+        className="flex items-center gap-3 px-3 py-4"
+        style={{ borderBottom: '1px solid #1A1A1A' }}
+      >
+        {/* Logo mark */}
+        <div
+          className="flex items-center justify-center font-black text-[#0C0C0C] flex-shrink-0"
+          style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: 'linear-gradient(135deg, #E8A838, #D4761C)',
+            fontSize: 12,
+            boxShadow: '0 2px 12px rgba(232,168,56,0.30)',
+          }}
+        >
+          90
+        </div>
+
+        {/* Wordmark — hidden when collapsed on desktop */}
+        {(forMobile || !collapsed) && (
+          <div className="min-w-0">
+            <div className="font-bold text-sm leading-tight tracking-tight" style={{ color: '#F0EDED' }}>
+              Orbit90
+            </div>
+            <div className="text-[10px] tracking-widest font-mono" style={{ color: '#3A3A3A' }}>
+              90-DAY PROTOCOL
+            </div>
           </div>
-          <div>
-            <div className="font-bold text-white text-sm leading-tight">Sysd 90</div>
-            <div className="text-[10px] text-slate-500">90-Day Mastery</div>
-          </div>
-        </Link>
+        )}
+
+        {/* Desktop collapse toggle */}
+        {!forMobile && (
+          <button
+            onClick={toggleCollapsed}
+            className="ml-auto p-1 rounded-lg transition-colors flex-shrink-0"
+            style={{ color: '#3A3A3A' }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#9A9494')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#3A3A3A')}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed
+              ? <ChevronRight className="w-3.5 h-3.5" />
+              : <ChevronLeft className="w-3.5 h-3.5" />
+            }
+          </button>
+        )}
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const isActive = pathname === href || pathname.startsWith(href + '/')
-          return (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setMobileOpen(false)}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group',
-                isActive
-                  ? 'bg-blue-500/15 text-blue-400 border-l-2 border-blue-500'
-                  : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
-              )}
-            >
-              <Icon className={cn('w-4 h-4 flex-shrink-0', isActive ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-300')} />
-              {label}
-            </Link>
-          )
-        })}
+      <nav className="flex-1 px-2 py-3 overflow-y-auto overflow-x-hidden space-y-4">
+        {NAV_GROUPS.map(group => (
+          <div key={group.label}>
+            {/* Group label — only when expanded */}
+            {(forMobile || !collapsed) && (
+              <div
+                className="px-2 mb-1 text-[10px] font-semibold tracking-widest uppercase"
+                style={{ color: '#3A3A3A' }}
+              >
+                {group.label}
+              </div>
+            )}
+            {/* Collapsed group divider */}
+            {!forMobile && collapsed && (
+              <div className="w-6 h-px mx-auto mb-2" style={{ background: '#1F1F1F' }} />
+            )}
+
+            <div className="space-y-0.5">
+              {group.items.map(({ href, label, icon: Icon }) => {
+                const isActive = pathname === href || pathname.startsWith(href + '/')
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMobileOpen(false)}
+                    title={!forMobile && collapsed ? label : undefined}
+                    className={cn(
+                      'flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-150 group relative',
+                      collapsed && !forMobile ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5',
+                      isActive
+                        ? 'text-[#0C0C0C]'
+                        : 'text-[#5C5757] hover:text-[#F0EDED]'
+                    )}
+                    style={isActive ? {
+                      background: 'linear-gradient(135deg, #E8A838, #D4761C)',
+                      boxShadow: '0 2px 10px rgba(232,168,56,0.18)',
+                    } : undefined}
+                    onMouseEnter={e => {
+                      if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                    }}
+                    onMouseLeave={e => {
+                      if (!isActive) e.currentTarget.style.background = 'transparent'
+                    }}
+                  >
+                    <Icon
+                      className={cn(
+                        'w-4 h-4 flex-shrink-0',
+                        isActive ? 'text-[#0C0C0C]' : 'text-[#5C5757] group-hover:text-[#9A9494]'
+                      )}
+                    />
+                    {(forMobile || !collapsed) && (
+                      <span className="truncate">{label}</span>
+                    )}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
-      {/* Bottom */}
-      <div className="px-3 pb-4 pt-2 border-t border-[#1e2535]">
+      {/* Sign out */}
+      <div className="px-2 pb-4 pt-2" style={{ borderTop: '1px solid #1A1A1A' }}>
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all duration-150 w-full"
+          title={!forMobile && collapsed ? 'Sign Out' : undefined}
+          className={cn(
+            'flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-150 w-full',
+            collapsed && !forMobile ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5',
+          )}
+          style={{ color: '#3A3A3A' }}
+          onMouseEnter={e => {
+            e.currentTarget.style.color = '#f87171'
+            e.currentTarget.style.background = 'rgba(239,68,68,0.06)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.color = '#3A3A3A'
+            e.currentTarget.style.background = 'transparent'
+          }}
         >
-          <LogOut className="w-4 h-4" />
-          Sign Out
+          <LogOut className="w-4 h-4 flex-shrink-0" />
+          {(forMobile || !collapsed) && <span>Sign Out</span>}
         </button>
       </div>
     </div>
   )
 
   return (
-    <>
+    <SidebarContext.Provider value={{ collapsed }}>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-56 bg-[#0d0f14] border-r border-[#1e2535] h-screen sticky top-0 flex-shrink-0">
-        <SidebarContent />
+      <aside
+        className="hidden lg:flex flex-col h-screen sticky top-0 flex-shrink-0 overflow-hidden"
+        style={{
+          width: collapsed ? 60 : 220,
+          background: '#0A0A0A',
+          borderRight: '1px solid #1A1A1A',
+          transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
+        <SidebarContent forMobile={false} />
       </aside>
 
       {/* Mobile toggle button */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="fixed top-4 left-4 z-50 lg:hidden w-10 h-10 bg-[#0f1117] border border-[#1e2535] rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+        className="fixed top-4 left-4 z-50 lg:hidden w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+        style={{ background: '#111111', border: '1px solid #1F1F1F', color: '#9A9494' }}
       >
-        {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
       </button>
 
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          className="fixed inset-0 z-40 lg:hidden"
+          style={{ background: 'rgba(0,0,0,0.70)' }}
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -125,12 +258,17 @@ export default function Sidebar() {
       {/* Mobile drawer */}
       <aside
         className={cn(
-          'fixed left-0 top-0 z-50 h-screen w-56 bg-[#0d0f14] border-r border-[#1e2535] transition-transform duration-300 lg:hidden',
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+          'fixed left-0 top-0 z-50 h-screen transition-transform duration-300 lg:hidden',
         )}
+        style={{
+          width: 220,
+          background: '#0A0A0A',
+          borderRight: '1px solid #1A1A1A',
+          transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
+        }}
       >
-        <SidebarContent />
+        <SidebarContent forMobile={true} />
       </aside>
-    </>
+    </SidebarContext.Provider>
   )
 }

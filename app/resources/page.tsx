@@ -18,17 +18,23 @@ const CATEGORIES: ResourceCategory[] = [
 const STATUS_OPTIONS: ResourceStatus[] = ['Not Started', 'Using', 'Completed']
 
 const STATUS_STYLE: Record<ResourceStatus, string> = {
-  'Not Started': 'bg-slate-500/10 text-slate-400 border-slate-500/20',
-  'Using': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  'Completed': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  'Not Started': 'border border-[#2A2A2A] text-[#5C5757]',
+  'Using': 'border border-amber-500/30 text-amber-400',
+  'Completed': 'border border-emerald-500/30 text-emerald-400',
+}
+
+const STATUS_BG: Record<ResourceStatus, string> = {
+  'Not Started': 'transparent',
+  'Using': 'rgba(232,168,56,0.08)',
+  'Completed': 'rgba(52,211,153,0.08)',
 }
 
 const CAT_COLORS: Record<ResourceCategory, string> = {
-  'System Design Beginner': 'text-blue-400',
-  'System Design Intermediate': 'text-purple-400',
-  'DSA': 'text-emerald-400',
-  'Mock Interviews': 'text-cyan-400',
-  'Tools': 'text-amber-400',
+  'System Design Beginner': '#E8A838',
+  'System Design Intermediate': '#a78bfa',
+  'DSA': '#34d399',
+  'Mock Interviews': '#60a5fa',
+  'Tools': '#f87171',
 }
 
 export default function ResourcesPage() {
@@ -95,11 +101,11 @@ export default function ResourcesPage() {
     <AppShell>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-black text-white flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-emerald-400" />
+          <h1 className="text-2xl font-black flex items-center gap-2" style={{ color: '#F0EDED' }}>
+            <BookOpen className="w-6 h-6" style={{ color: '#E8A838' }} />
             Resources
           </h1>
-          <p className="text-slate-400 text-sm mt-1">{completedCount} completed · {usingCount} using · {RESOURCES.length} total resources</p>
+          <p className="text-sm mt-1" style={{ color: '#9A9494' }}>{completedCount} completed · {usingCount} using · {RESOURCES.length} total resources</p>
         </div>
 
         {/* Category tabs */}
@@ -108,11 +114,12 @@ export default function ResourcesPage() {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all ${
-                activeCategory === cat
-                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
-                  : 'bg-[#0f1117] border-[#1e2535] text-slate-400 hover:text-slate-200'
-              }`}
+              className="text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all"
+              style={{
+                background: activeCategory === cat ? 'rgba(232,168,56,0.10)' : '#111111',
+                borderColor: activeCategory === cat ? 'rgba(232,168,56,0.30)' : '#1F1F1F',
+                color: activeCategory === cat ? '#E8A838' : '#9A9494',
+              }}
             >
               {cat}
             </button>
@@ -125,20 +132,24 @@ export default function ResourcesPage() {
           if (catResources.length === 0) return null
           return (
             <div key={cat}>
-              <h2 className={`text-sm font-bold mb-3 ${CAT_COLORS[cat as ResourceCategory]}`}>{cat}</h2>
+              <h2 className="text-sm font-bold mb-3" style={{ color: CAT_COLORS[cat as ResourceCategory] }}>{cat}</h2>
               <div className="grid sm:grid-cols-2 gap-3">
                 {catResources.map(resource => {
                   const status = statusMap[resource.key] ?? 'Not Started'
                   const note = notesMap[resource.key] ?? ''
                   return (
-                    <div key={resource.key} className="bg-[#0f1117] border border-[#1e2535] hover:border-[#2d3748] rounded-xl p-4 transition-all">
+                    <div key={resource.key} className="p-4 transition-all" style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 12 }}
+                      onMouseEnter={e => (e.currentTarget.style.borderColor = '#2A2A2A')}
+                      onMouseLeave={e => (e.currentTarget.style.borderColor = '#1F1F1F')}>
                       <div className="flex items-start justify-between gap-3 mb-2">
-                        <h3 className="font-semibold text-white text-sm">{resource.name}</h3>
-                        <a href={resource.link} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-blue-400 transition-colors flex-shrink-0">
+                        <h3 className="font-semibold text-sm" style={{ color: '#F0EDED' }}>{resource.name}</h3>
+                        <a href={resource.link} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 transition-colors" style={{ color: '#3A3A3A' }}
+                          onMouseEnter={e => (e.currentTarget.style.color = '#E8A838')}
+                          onMouseLeave={e => (e.currentTarget.style.color = '#3A3A3A')}>
                           <ExternalLink className="w-4 h-4" />
                         </a>
                       </div>
-                      <p className="text-slate-500 text-xs mb-3 leading-relaxed">{resource.description}</p>
+                      <p className="text-xs mb-3 leading-relaxed" style={{ color: '#5C5757' }}>{resource.description}</p>
 
                       {/* Status selector */}
                       <div className="flex gap-1.5 mb-2">
@@ -146,11 +157,10 @@ export default function ResourcesPage() {
                           <button
                             key={s}
                             onClick={() => updateStatus(resource.key, s)}
-                            className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg border transition-all ${
-                              status === s ? STATUS_STYLE[s] : 'bg-transparent text-slate-600 border-[#1e2535] hover:text-slate-400'
-                            }`}
+                            className="text-[10px] font-semibold px-2.5 py-1 rounded-lg border transition-all"
+                            style={status === s ? { background: STATUS_BG[s] } : { background: 'transparent', borderColor: '#1F1F1F', color: '#5C5757' }}
                           >
-                            {s}
+                            <span className={status === s ? STATUS_STYLE[s] : ''}>{s}</span>
                           </button>
                         ))}
                       </div>

@@ -3,45 +3,70 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/hooks/useAuth'
-import { getCurrentDay, getCurrentWeek, getMotivationalMessage, formatDateKey } from '@/lib/utils/date'
-import { calculateReadinessScore, TIER_COLORS, TIER_BG, TIER_EMOJI } from '@/lib/utils/readiness'
-import { generateDailyTasks } from '@/lib/data/roadmap'
-import { ROADMAP_DATA } from '@/lib/data/roadmap'
-import AppShell from '@/components/layout/AppShell'
 import {
-  Flame, TrendingUp, Code2, Server, Target, Calendar,
-  CheckCircle2, Circle, ChevronRight, Timer, Zap, ArrowRight,
-  AlertTriangle, BookOpen
+  getCurrentDay, getCurrentWeek, getMotivationalMessage, formatDateKey,
+} from '@/lib/utils/date'
+import { calculateReadinessScore, TIER_EMOJI } from '@/lib/utils/readiness'
+import { generateDailyTasks, ROADMAP_DATA } from '@/lib/data/roadmap'
+import AppShell from '@/components/layout/AppShell'
+import OrbitSystem, { PlanetModule } from '@/components/orbit/OrbitSystem'
+import TodayMission, { MissionTask } from '@/components/orbit/TodayMission'
+import {
+  Flame, TrendingUp, Code2, Server, Timer,
+  ChevronRight, Calendar, ArrowRight, Rocket,
 } from 'lucide-react'
 import Link from 'next/link'
 
+/* ── Constants ── */
 const ALL_DAYS = generateDailyTasks()
 const TASK_TYPES = ['system_design', 'dsa', 'practical', 'revision'] as const
 
+const TASK_META: Record<string, { label: string; emoji: string }> = {
+  system_design: { label: 'System Design',  emoji: '🏗️' },
+  dsa:           { label: 'DSA Practice',   emoji: '💻' },
+  practical:     { label: 'Practical',       emoji: '🔨' },
+  revision:      { label: 'Revision',        emoji: '📚' },
+}
+
+/* ── Readiness tier badge colors ── */
+const TIER_COLOR: Record<string, string> = {
+  'Beginner':        '#9A9494',
+  'Building':        '#60a5fa',
+  'Consistent':      '#34d399',
+  'Interview-Ready': '#a78bfa',
+  'Peak Mode':       '#E8A838',
+}
+
+/* ─────────────────────────────────────────────── */
 export default function DashboardPage() {
   const { profile } = useAuth()
   const supabase = createClient()
 
-  const [streak, setStreak] = useState(0)
-  const [longestStreak, setLongestStreak] = useState(0)
-  const [dsaCount, setDsaCount] = useState({ total: 0, easy: 0, medium: 0, hard: 0 })
-  const [caseStudyCount, setCaseStudyCount] = useState(0)
-  const [mocksCount, setMocksCount] = useState(0)
+  /* ── State ── */
+  const [streak, setStreak]                     = useState(0)
+  const [longestStreak, setLongestStreak]       = useState(0)
+  const [dsaCount, setDsaCount]                 = useState({ total: 0, easy: 0, medium: 0, hard: 0 })
+  const [caseStudyCount, setCaseStudyCount]     = useState(0)
+  const [mocksCount, setMocksCount]             = useState(0)
+  const [roadmapChecked, setRoadmapChecked]     = useState(0)  // total roadmap checklist items done
   const [todayCompletions, setTodayCompletions] = useState<Record<string, boolean>>({})
-  const [loading, setLoading] = useState(true)
-  const [markingDay, setMarkingDay] = useState(false)
-  const [focusTimer, setFocusTimer] = useState<{ active: boolean; minutes: number; remaining: number } | null>(null)
-  const [weeklyReviews, setWeeklyReviews] = useState(0)
+  const [weeklyReviews, setWeeklyReviews]       = useState(0)
+  const [loading, setLoading]                   = useState(true)
+  const [focusTimer, setFocusTimer]             = useState<{ minutes: number; remaining: number } | null>(null)
 
-  const currentDay = getCurrentDay(profile?.start_date ?? null)
-  const currentWeek = getCurrentWeek(profile?.start_date ?? null)
-  const todayTask = ALL_DAYS.find(d => d.day === currentDay)
-  const nextIncompleteDay = ALL_DAYS.find(d => d.day > currentDay)
-  const weekData = ROADMAP_DATA.find(w => w.week === currentWeek)
+  /* ── Derived values ── */
+  const currentDay      = getCurrentDay(profile?.start_date ?? null)
+  const currentWeek     = getCurrentWeek(profile?.start_date ?? null)
+  const daysRemaining   = Math.max(0, 90 - currentDay)
+  const todayTask       = ALL_DAYS.find(d => d.day === currentDay)
+  const weekData        = ROADMAP_DATA.find(w => w.week === currentWeek)
+  const nextDay         = ALL_DAYS.find(d => d.day === currentDay + 1)
+  const overallPct      = Math.round(Math.min((currentDay / 90) * 100, 100))
+  const motivational    = getMotivationalMessage(currentDay, streak)
 
-  const completedToday = Object.values(todayCompletions).filter(Boolean).length
-  const todayProgress = TASK_TYPES.length > 0 ? Math.round((completedToday / TASK_TYPES.length) * 100) : 0
-  const overallProgress = Math.round((currentDay / 90) * 100)
+  const completedToday  = Object.values(todayCompletions).filter(Boolean).length
+  const todayProgress   = TASK_TYPES.length > 0
+    ? Math.round((completedToday / TASK_TYPES.length) * 100) : 0
 
   const readiness = calculateReadinessScore({
     dsaSolved: dsaCount.total,
@@ -51,448 +76,570 @@ export default function DashboardPage() {
     weeklyReviewsCompleted: weeklyReviews,
   })
 
+  /* ── Planet modules with derived progress ── */
+  const planets: PlanetModule[] = [
+    {
+      id:       'roadmap',
+      label:    'Roadmap',
+      emoji:    '🗺️',
+      href:     '/roadmap',
+      progress: Math.round(Math.min((roadmapChecked / (12 * 5)) * 100, 100)), // 12 weeks × ~5 checklist items
+      status:   `Week ${currentWeek}/12`,
+      color:    '#E8A838',
+    },
+    {
+      id:       'dsa',
+      label:    'DSA',
+      emoji:    '💻',
+      href:     '/dsa',
+      progress: Math.round(Math.min((dsaCount.total / 150) * 100, 100)),
+      status:   `${dsaCount.total}/150 solved`,
+      color:    '#a78bfa',
+    },
+    {
+      id:       'portfolio',
+      label:    'Projects',
+      emoji:    '📁',
+      href:     '/portfolio',
+      progress: 0,   // portfolio progress comes from portfolio_progress table — default 0
+      status:   'Build case repo',
+      color:    '#60a5fa',
+    },
+    {
+      id:       'case-studies',
+      label:    'Case Studies',
+      emoji:    '🔬',
+      href:     '/case-studies',
+      progress: Math.round(Math.min((caseStudyCount / 144) * 100, 100)),
+      status:   `${caseStudyCount}/144 sections`,
+      color:    '#34d399',
+    },
+    {
+      id:       'mocks',
+      label:    'Mocks',
+      emoji:    '🎤',
+      href:     '/mocks',
+      progress: Math.round(Math.min((mocksCount / 10) * 100, 100)),
+      status:   `${mocksCount} logged`,
+      color:    '#f97316',
+    },
+  ]
+
+  /* ── Today's mission tasks ── */
+  const missionTasks: MissionTask[] = TASK_TYPES.map(type => ({
+    type,
+    label: TASK_META[type].label,
+    emoji: TASK_META[type].emoji,
+    task:  (todayTask as Record<string, string> | undefined)?.[
+      type === 'system_design' ? 'systemDesignTask' :
+      type === 'dsa'           ? 'dsaTask' :
+      type === 'practical'     ? 'practicalTask' :
+                                 'revisionTask'
+    ] ?? `${TASK_META[type].label} — Week ${currentWeek}`,
+    done: todayCompletions[type] ?? false,
+  }))
+
+  /* ── Data loading ── */
   useEffect(() => {
     if (!profile) return
-    loadDashboardData()
+    loadData()
   }, [profile])
 
-  async function loadDashboardData() {
+  async function loadData() {
     setLoading(true)
     const userId = (await supabase.auth.getUser()).data.user?.id
     if (!userId) { setLoading(false); return }
 
-    const today = formatDateKey()
+    /* Streak */
+    const { data: streakData } = await supabase.from('streaks').select('*').eq('user_id', userId).single()
+    if (streakData) { setStreak(streakData.current_streak); setLongestStreak(streakData.longest_streak) }
 
-    // Load streak
-    const { data: streakData } = await supabase
-      .from('streaks')
-      .select('*')
-      .eq('user_id', userId)
-      .single()
-    if (streakData) {
-      setStreak(streakData.current_streak)
-      setLongestStreak(streakData.longest_streak)
-    }
-
-    // Load today's completions
+    /* Today's completions */
     const { data: completions } = await supabase
-      .from('task_completions')
-      .select('task_type, completed')
-      .eq('user_id', userId)
-      .eq('day_number', currentDay)
+      .from('task_completions').select('task_type, completed')
+      .eq('user_id', userId).eq('day_number', currentDay)
     if (completions) {
       const map: Record<string, boolean> = {}
       completions.forEach(c => { map[c.task_type] = c.completed })
       setTodayCompletions(map)
     }
 
-    // DSA count
-    const { count: dsaTotal } = await supabase
-      .from('dsa_problems')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('status', 'Solved')
-    const { count: dsaEasy } = await supabase
-      .from('dsa_problems')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('difficulty', 'Easy')
-      .eq('status', 'Solved')
-    const { count: dsaMedium } = await supabase
-      .from('dsa_problems')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('difficulty', 'Medium')
-      .eq('status', 'Solved')
-    const { count: dsaHard } = await supabase
-      .from('dsa_problems')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('difficulty', 'Hard')
-      .eq('status', 'Solved')
-    setDsaCount({
-      total: dsaTotal ?? 0,
-      easy: dsaEasy ?? 0,
-      medium: dsaMedium ?? 0,
-      hard: dsaHard ?? 0,
-    })
+    /* DSA */
+    const { count: dsaTotal }  = await supabase.from('dsa_problems').select('*', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'Solved')
+    const { count: dsaEasy }   = await supabase.from('dsa_problems').select('*', { count: 'exact', head: true }).eq('user_id', userId).eq('difficulty', 'Easy').eq('status', 'Solved')
+    const { count: dsaMedium } = await supabase.from('dsa_problems').select('*', { count: 'exact', head: true }).eq('user_id', userId).eq('difficulty', 'Medium').eq('status', 'Solved')
+    const { count: dsaHard }   = await supabase.from('dsa_problems').select('*', { count: 'exact', head: true }).eq('user_id', userId).eq('difficulty', 'Hard').eq('status', 'Solved')
+    setDsaCount({ total: dsaTotal ?? 0, easy: dsaEasy ?? 0, medium: dsaMedium ?? 0, hard: dsaHard ?? 0 })
 
-    // Case study sections
-    const { count: csCount } = await supabase
-      .from('case_study_progress')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('completed', true)
+    /* Case studies */
+    const { count: csCount } = await supabase.from('case_study_progress').select('*', { count: 'exact', head: true }).eq('user_id', userId).eq('completed', true)
     setCaseStudyCount(csCount ?? 0)
 
-    // Mocks
-    const { count: mCount } = await supabase
-      .from('mock_interviews')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
+    /* Mocks */
+    const { count: mCount } = await supabase.from('mock_interviews').select('*', { count: 'exact', head: true }).eq('user_id', userId)
     setMocksCount(mCount ?? 0)
 
-    // Weekly reviews
-    const { count: wrCount } = await supabase
-      .from('weekly_reviews')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
+    /* Weekly reviews */
+    const { count: wrCount } = await supabase.from('weekly_reviews').select('*', { count: 'exact', head: true }).eq('user_id', userId)
     setWeeklyReviews(wrCount ?? 0)
+
+    /* Roadmap completions (used for Roadmap planet progress) */
+    const { count: rmCount } = await supabase.from('task_completions').select('*', { count: 'exact', head: true }).eq('user_id', userId).eq('completed', true)
+    setRoadmapChecked(rmCount ?? 0)
 
     setLoading(false)
   }
 
+  /* ── Task toggle (only marks done on explicit click) ── */
   async function toggleTask(taskType: string) {
     const userId = (await supabase.auth.getUser()).data.user?.id
     if (!userId) return
     const newValue = !todayCompletions[taskType]
     setTodayCompletions(prev => ({ ...prev, [taskType]: newValue }))
 
-    await supabase
-      .from('task_completions')
-      .upsert({
-        user_id: userId,
-        day_number: currentDay,
-        task_type: taskType,
-        task_key: taskType,
-        completed: newValue,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id,day_number,task_type,task_key' })
+    await supabase.from('task_completions').upsert({
+      user_id: userId,
+      day_number: currentDay,
+      task_type: taskType,
+      task_key: taskType,
+      completed: newValue,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id,day_number,task_type,task_key' })
 
-    // Update streak if 70%+ complete
+    /* Update streak if ≥70% done */
     const newCompletions = { ...todayCompletions, [taskType]: newValue }
-    const completedCount = Object.values(newCompletions).filter(Boolean).length
-    const pct = (completedCount / TASK_TYPES.length) * 100
-
-    if (pct >= 70) {
+    const doneCount = Object.values(newCompletions).filter(Boolean).length
+    if ((doneCount / TASK_TYPES.length) >= 0.7) {
       const today = formatDateKey()
-      const { data: existingStreak } = await supabase
-        .from('streaks')
-        .select('*')
-        .eq('user_id', userId)
-        .single()
-
-      if (existingStreak) {
-        const calendar = existingStreak.streak_calendar || {}
-        if (!calendar[today]) {
-          calendar[today] = true
-          const newCurrent = (existingStreak.last_active_date === formatDateKey(new Date(Date.now() - 86400000)))
-            ? existingStreak.current_streak + 1
-            : 1
-          const newLongest = Math.max(existingStreak.longest_streak, newCurrent)
+      const { data: existing } = await supabase.from('streaks').select('*').eq('user_id', userId).single()
+      if (existing) {
+        const cal = existing.streak_calendar || {}
+        if (!cal[today]) {
+          cal[today] = true
+          const newCurrent = existing.last_active_date === formatDateKey(new Date(Date.now() - 86400000))
+            ? existing.current_streak + 1 : 1
+          const newLongest = Math.max(existing.longest_streak, newCurrent)
           await supabase.from('streaks').update({
-            current_streak: newCurrent,
-            longest_streak: newLongest,
-            total_active_days: existingStreak.total_active_days + 1,
-            last_active_date: today,
-            streak_calendar: calendar,
+            current_streak: newCurrent, longest_streak: newLongest,
+            total_active_days: existing.total_active_days + 1,
+            last_active_date: today, streak_calendar: cal,
           }).eq('user_id', userId)
-          setStreak(newCurrent)
-          setLongestStreak(newLongest)
+          setStreak(newCurrent); setLongestStreak(newLongest)
         }
       } else {
         await supabase.from('streaks').insert({
-          user_id: userId,
-          current_streak: 1,
-          longest_streak: 1,
-          total_active_days: 1,
-          last_active_date: today,
-          streak_calendar: { [today]: true },
+          user_id: userId, current_streak: 1, longest_streak: 1,
+          total_active_days: 1, last_active_date: formatDateKey(), streak_calendar: { [formatDateKey()]: true },
         })
         setStreak(1)
       }
     }
   }
 
-  function startFocusTimer(minutes: number) {
-    setFocusTimer({ active: true, minutes, remaining: minutes * 60 })
-    const interval = setInterval(() => {
+  /* ── Focus timer ── */
+  function startTimer(min: number) {
+    setFocusTimer({ minutes: min, remaining: min * 60 })
+    const id = setInterval(() => {
       setFocusTimer(prev => {
-        if (!prev) { clearInterval(interval); return null }
-        if (prev.remaining <= 1) { clearInterval(interval); return null }
+        if (!prev || prev.remaining <= 1) { clearInterval(id); return null }
         return { ...prev, remaining: prev.remaining - 1 }
       })
     }, 1000)
   }
 
-  const TASK_LABELS: Record<string, { label: string; emoji: string; task: string }> = {
-    system_design: { label: 'System Design', emoji: '🏗️', task: todayTask?.systemDesignTask ?? '' },
-    dsa: { label: 'DSA Practice', emoji: '💻', task: todayTask?.dsaTask ?? '' },
-    practical: { label: 'Practical', emoji: '🔨', task: todayTask?.practicalTask ?? '' },
-    revision: { label: 'Revision', emoji: '📚', task: todayTask?.revisionTask ?? '' },
-  }
-
-  const motivational = getMotivationalMessage(currentDay, streak)
-
+  /* ── Onboarding (no start_date) ── */
   if (!profile?.start_date) {
     return (
-      <AppShell streak={streak}>
-        <OnboardingCard />
+      <AppShell hideTopBar>
+        <OrbitOnboarding />
       </AppShell>
     )
   }
 
+  /* ── Main My Orbit layout ── */
   return (
-    <AppShell streak={streak}>
-      <div className="space-y-6">
-        {/* Motivational banner */}
-        <div className="bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-cyan-600/10 border border-blue-500/20 rounded-2xl px-6 py-4">
-          <p className="text-slate-300 font-medium">{motivational}</p>
-        </div>
+    <AppShell hideTopBar>
+      <div className="flex flex-col gap-6 min-h-full">
 
-        {/* Stats row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StatCard label="Current Day" value={`${currentDay}/90`} sub={`Week ${currentWeek}/12`} color="text-blue-400" icon={<Calendar className="w-4 h-4" />} />
-          <StatCard label="Streak" value={`${streak} 🔥`} sub={`Best: ${longestStreak}`} color="text-orange-400" icon={<Flame className="w-4 h-4" />} />
-          <StatCard label="DSA Solved" value={dsaCount.total.toString()} sub={`${dsaCount.easy}E · ${dsaCount.medium}M · ${dsaCount.hard}H`} color="text-purple-400" icon={<Code2 className="w-4 h-4" />} />
-          <StatCard label="Case Studies" value={`${Math.round(caseStudyCount / 12 * 100) || 0}%`} sub={`${caseStudyCount}/144 sections`} color="text-cyan-400" icon={<Server className="w-4 h-4" />} />
-        </div>
+        {/* ── Mission Control Header ── */}
+        <div
+          className="flex flex-wrap items-center gap-3 px-1"
+          style={{ paddingTop: 4 }}
+        >
+          {/* Greeting */}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-black tracking-tight" style={{ color: '#F0EDED' }}>
+              My Orbit
+            </h1>
+            <p className="text-sm mt-0.5 truncate" style={{ color: '#5C5757' }}>
+              {motivational}
+            </p>
+          </div>
 
-        {/* Main grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Today's Mission */}
-          <div className="lg:col-span-2 bg-[#0f1117] border border-[#1e2535] rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="font-bold text-white flex items-center gap-2">
-                <Target className="w-5 h-5 text-blue-400" />
-                Today&apos;s Mission
-                <span className="text-slate-500 font-normal text-sm">Day {currentDay}</span>
-              </h2>
-              <span className="text-sm font-bold text-blue-400">{todayProgress}%</span>
-            </div>
-
-            {/* Progress bar */}
-            <div className="h-1.5 bg-[#1e2535] rounded-full mb-5 overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
-                style={{ width: `${todayProgress}%` }}
+          {/* Mission pills */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Pill icon={<Calendar className="w-3.5 h-3.5" />} label={`Day ${currentDay}`} sub="/90" />
+            <Pill icon={<TrendingUp className="w-3.5 h-3.5" />} label={`Week ${currentWeek}`} sub="/12" />
+            {streak > 0 && (
+              <Pill
+                icon={<Flame className="w-3.5 h-3.5" />}
+                label={`${streak}`}
+                sub="streak"
+                accent
               />
+            )}
+            {/* Readiness badge */}
+            <div
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
+              style={{
+                background: `${TIER_COLOR[readiness.tier]}12`,
+                border: `1px solid ${TIER_COLOR[readiness.tier]}25`,
+                color: TIER_COLOR[readiness.tier],
+              }}
+            >
+              <span>{TIER_EMOJI[readiness.tier]}</span>
+              <span>{readiness.tier}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Hero: Orbit + Mission Panel ── */}
+        <div className="grid lg:grid-cols-[1fr_380px] gap-6 items-start">
+
+          {/* Orbit visualization */}
+          <div
+            className="flex flex-col items-center justify-center py-8 px-4 rounded-2xl relative overflow-hidden"
+            style={{
+              background: 'radial-gradient(ellipse at 50% 50%, #0F0E0B 0%, #0A0A0A 60%, #080808 100%)',
+              border: '1px solid #1A1A1A',
+              minHeight: 480,
+            }}
+          >
+            {/* Ambient glow behind orbit */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(232,168,56,0.04) 0%, transparent 70%)',
+              }}
+            />
+
+            {/* Orbit label */}
+            <div className="absolute top-5 left-6 flex items-center gap-2">
+              <Rocket className="w-3.5 h-3.5" style={{ color: '#3A3A3A' }} />
+              <span className="text-[11px] font-semibold tracking-widest uppercase" style={{ color: '#2A2A2A' }}>
+                Mission Orbit
+              </span>
             </div>
 
-            {/* Tasks */}
-            <div className="space-y-3">
-              {TASK_TYPES.map(type => {
-                const { label, emoji, task } = TASK_LABELS[type]
-                const done = todayCompletions[type]
-                return (
-                  <button
-                    key={type}
-                    onClick={() => toggleTask(type)}
-                    className={`w-full flex items-start gap-3 p-4 rounded-xl border text-left transition-all duration-200 ${
-                      done
-                        ? 'bg-emerald-500/5 border-emerald-500/20'
-                        : 'bg-[#161b26] border-[#1e2535] hover:border-[#2d3748]'
-                    }`}
-                  >
-                    {done
-                      ? <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-                      : <Circle className="w-5 h-5 text-slate-600 flex-shrink-0 mt-0.5" />
-                    }
-                    <div className="min-w-0">
-                      <div className={`text-xs font-semibold mb-0.5 ${done ? 'text-emerald-400' : 'text-slate-500'}`}>
-                        {emoji} {label}
-                      </div>
-                      <div className={`text-sm ${done ? 'line-through text-slate-500' : 'text-slate-200'}`}>
-                        {task || `${label} for Week ${currentWeek}`}
-                      </div>
-                    </div>
-                  </button>
-                )
-              })}
+            {/* Overall progress arc label */}
+            <div className="absolute top-5 right-6 text-right">
+              <div className="text-xs font-bold" style={{ color: '#E8A838' }}>{overallPct}%</div>
+              <div className="text-[10px]" style={{ color: '#3A3A3A' }}>overall</div>
             </div>
 
-            {/* Quick actions */}
-            <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-[#1e2535]">
-              <Link href="/dsa" className="flex items-center gap-1.5 text-xs font-medium bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 px-3 py-1.5 rounded-xl transition-colors">
-                <Code2 className="w-3.5 h-3.5" />
-                Log DSA Problem
-              </Link>
-              <Link href="/notes" className="flex items-center gap-1.5 text-xs font-medium bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 px-3 py-1.5 rounded-xl transition-colors">
-                <BookOpen className="w-3.5 h-3.5" />
-                Add Note
-              </Link>
-              <Link href="/mocks" className="flex items-center gap-1.5 text-xs font-medium bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 px-3 py-1.5 rounded-xl transition-colors">
-                <Zap className="w-3.5 h-3.5" />
-                Start Mock
-              </Link>
+            {/* The orbit system — responsive size */}
+            <div className="relative z-10">
+              <OrbitSystemResponsive
+                currentDay={currentDay}
+                daysRemaining={daysRemaining}
+                planets={planets}
+              />
             </div>
           </div>
 
-          {/* Right column */}
-          <div className="space-y-4">
-            {/* Readiness Score */}
-            <div className={`${TIER_BG[readiness.tier]} border rounded-2xl p-5`}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Readiness Score</span>
-                <span className="text-2xl">{TIER_EMOJI[readiness.tier]}</span>
-              </div>
-              <div className={`text-3xl font-black mb-1 ${TIER_COLORS[readiness.tier]}`}>{readiness.score}</div>
-              <div className={`text-sm font-bold mb-3 ${TIER_COLORS[readiness.tier]}`}>{readiness.tier}</div>
-              <div className="h-1.5 bg-[#0a0b0e]/50 rounded-full overflow-hidden">
+          {/* Today's Mission panel */}
+          <div style={{ minHeight: 480 }}>
+            <TodayMission
+              day={currentDay}
+              week={currentWeek}
+              tasks={missionTasks}
+              onToggle={toggleTask}
+              loading={loading}
+            />
+          </div>
+        </div>
+
+        {/* ── Stats row ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <StatCard
+            label="DSA Solved"
+            value={dsaCount.total}
+            sub={`${dsaCount.easy}E · ${dsaCount.medium}M · ${dsaCount.hard}H`}
+            color="#a78bfa"
+            icon={<Code2 className="w-4 h-4" />}
+            href="/dsa"
+            max={150}
+          />
+          <StatCard
+            label="Case Studies"
+            value={caseStudyCount}
+            sub={`/ 144 sections`}
+            color="#34d399"
+            icon={<Server className="w-4 h-4" />}
+            href="/case-studies"
+            max={144}
+          />
+          <StatCard
+            label="Mock Interviews"
+            value={mocksCount}
+            sub={mocksCount >= 10 ? 'Target reached!' : `${10 - mocksCount} to target`}
+            color="#f97316"
+            icon={<Rocket className="w-4 h-4" />}
+            href="/mocks"
+            max={10}
+          />
+          <StatCard
+            label="Streak"
+            value={streak}
+            sub={`Best: ${longestStreak} days`}
+            color="#E8A838"
+            icon={<Flame className="w-4 h-4" />}
+            href="/daily"
+          />
+        </div>
+
+        {/* ── Bottom row: Week Focus + Readiness + Timer ── */}
+        <div className="grid sm:grid-cols-3 gap-4 pb-2">
+
+          {/* Week Focus */}
+          <div
+            className="p-5 rounded-2xl"
+            style={{ background: '#0F0F0F', border: '1px solid #1A1A1A' }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: '#5C5757' }}>
+                Week {currentWeek} Focus
+              </h3>
+              <Link href="/roadmap" className="flex items-center gap-0.5 text-xs transition-colors" style={{ color: '#3A3A3A' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#E8A838')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#3A3A3A')}>
+                View <ChevronRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <p className="font-bold text-sm mb-3" style={{ color: '#F0EDED' }}>
+              {weekData?.title ?? 'Loading...'}
+            </p>
+            <div className="space-y-1.5">
+              {weekData?.topics.slice(0, 4).map(t => (
+                <div key={t} className="flex items-center gap-2 text-xs" style={{ color: '#9A9494' }}>
+                  <div className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: '#E8A838' }} />
+                  {t}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Readiness Score */}
+          <div
+            className="p-5 rounded-2xl"
+            style={{ background: '#0F0F0F', border: '1px solid #1A1A1A' }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: '#5C5757' }}>
+                Readiness Score
+              </h3>
+              <span className="text-xl">{TIER_EMOJI[readiness.tier]}</span>
+            </div>
+            <div className="text-4xl font-black mb-0.5" style={{ color: TIER_COLOR[readiness.tier] }}>
+              {readiness.score}
+            </div>
+            <div className="text-sm font-bold mb-4" style={{ color: TIER_COLOR[readiness.tier] }}>
+              {readiness.tier}
+            </div>
+            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#1A1A1A' }}>
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${readiness.score}%`,
+                  background: TIER_COLOR[readiness.tier],
+                }}
+              />
+            </div>
+            {/* Breakdown mini */}
+            <div className="mt-3 space-y-1">
+              {readiness.breakdown.map(({ label, earned, max }) => (
+                <div key={label} className="flex items-center justify-between text-[10px]" style={{ color: '#3A3A3A' }}>
+                  <span className="truncate">{label.split(' ')[0]}</span>
+                  <span className="font-mono">{earned}/{max}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Focus Timer */}
+          <div
+            className="p-5 rounded-2xl"
+            style={{ background: '#0F0F0F', border: '1px solid #1A1A1A' }}
+          >
+            <h3 className="text-xs font-bold uppercase tracking-wider mb-4" style={{ color: '#5C5757' }}>
+              Focus Timer
+            </h3>
+            {focusTimer ? (
+              <div className="text-center">
                 <div
-                  className={`h-full rounded-full transition-all duration-700 ${
-                    readiness.tier === 'Peak Mode' ? 'bg-emerald-500' :
-                    readiness.tier === 'Interview-Ready' ? 'bg-purple-500' :
-                    readiness.tier === 'Consistent' ? 'bg-cyan-500' :
-                    readiness.tier === 'Building' ? 'bg-blue-500' : 'bg-slate-500'
-                  }`}
-                  style={{ width: `${readiness.score}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Overall Progress */}
-            <div className="bg-[#0f1117] border border-[#1e2535] rounded-2xl p-5">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-semibold text-slate-300">Overall Progress</span>
-                <span className="text-sm font-bold text-blue-400">{overallProgress}%</span>
-              </div>
-              <div className="flex items-center justify-center mb-4">
-                <ProgressRing progress={overallProgress} size={80} />
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <div className="text-xs text-slate-500">Day</div>
-                  <div className="text-sm font-bold text-white">{currentDay}/90</div>
+                  className="text-4xl font-mono font-black mb-4"
+                  style={{ color: '#F0EDED', letterSpacing: 2 }}
+                >
+                  {String(Math.floor(focusTimer.remaining / 60)).padStart(2, '0')}:
+                  {String(focusTimer.remaining % 60).padStart(2, '0')}
                 </div>
-                <div>
-                  <div className="text-xs text-slate-500">Week</div>
-                  <div className="text-sm font-bold text-white">{currentWeek}/12</div>
+                <div
+                  className="h-1 rounded-full mb-4 overflow-hidden"
+                  style={{ background: '#1A1A1A' }}
+                >
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${(focusTimer.remaining / (focusTimer.minutes * 60)) * 100}%`,
+                      background: 'linear-gradient(90deg, #E8A838, #D4761C)',
+                    }}
+                  />
                 </div>
-                <div>
-                  <div className="text-xs text-slate-500">Mocks</div>
-                  <div className="text-sm font-bold text-white">{mocksCount}</div>
-                </div>
+                <button
+                  onClick={() => setFocusTimer(null)}
+                  className="text-xs px-4 py-1.5 rounded-xl transition-colors"
+                  style={{ color: '#5C5757', border: '1px solid #1A1A1A' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#5C5757'; e.currentTarget.style.borderColor = '#1A1A1A' }}
+                >
+                  Stop
+                </button>
               </div>
-            </div>
-
-            {/* Focus Timer */}
-            <div className="bg-[#0f1117] border border-[#1e2535] rounded-2xl p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <Timer className="w-4 h-4 text-cyan-400" />
-                <span className="text-sm font-semibold text-slate-300">Focus Timer</span>
-              </div>
-              {focusTimer ? (
-                <div className="text-center">
-                  <div className="text-3xl font-mono font-bold text-white mb-3">
-                    {String(Math.floor(focusTimer.remaining / 60)).padStart(2, '0')}:
-                    {String(focusTimer.remaining % 60).padStart(2, '0')}
-                  </div>
-                  <button onClick={() => setFocusTimer(null)} className="text-xs text-slate-500 hover:text-red-400 transition-colors">
-                    Stop
-                  </button>
-                </div>
-              ) : (
+            ) : (
+              <div>
+                <p className="text-xs mb-4" style={{ color: '#3A3A3A' }}>
+                  Deep-focus your study session
+                </p>
                 <div className="grid grid-cols-3 gap-2">
-                  {[30, 60, 90].map(min => (
+                  {[25, 50, 90].map(min => (
                     <button
                       key={min}
-                      onClick={() => startFocusTimer(min)}
-                      className="bg-[#161b26] hover:bg-cyan-500/10 hover:text-cyan-400 hover:border-cyan-500/30 border border-[#1e2535] rounded-xl py-2 text-xs font-semibold text-slate-400 transition-all"
+                      onClick={() => startTimer(min)}
+                      className="py-3 rounded-xl text-sm font-bold transition-all"
+                      style={{ background: '#141414', border: '1px solid #1A1A1A', color: '#5C5757' }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = 'rgba(232,168,56,0.08)'
+                        e.currentTarget.style.borderColor = 'rgba(232,168,56,0.22)'
+                        e.currentTarget.style.color = '#E8A838'
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = '#141414'
+                        e.currentTarget.style.borderColor = '#1A1A1A'
+                        e.currentTarget.style.color = '#5C5757'
+                      }}
                     >
                       {min}m
                     </button>
                   ))}
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Week Focus + Next Up */}
-        <div className="grid sm:grid-cols-2 gap-4">
-          {/* Current Week Focus */}
-          <div className="bg-[#0f1117] border border-[#1e2535] rounded-2xl p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="w-4 h-4 text-purple-400" />
-              <h3 className="font-semibold text-white text-sm">Week {currentWeek} Focus</h3>
-            </div>
-            <p className="text-slate-300 font-bold mb-3">{weekData?.title}</p>
-            <div className="space-y-1.5">
-              {weekData?.topics.slice(0, 4).map(topic => (
-                <div key={topic} className="flex items-center gap-2 text-sm text-slate-400">
-                  <div className="w-1 h-1 rounded-full bg-purple-500 flex-shrink-0" />
-                  {topic}
-                </div>
-              ))}
-              {(weekData?.topics.length ?? 0) > 4 && (
-                <Link href="/roadmap" className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1 pt-1">
-                  +{(weekData?.topics.length ?? 0) - 4} more topics <ChevronRight className="w-3 h-3" />
-                </Link>
-              )}
-            </div>
-          </div>
-
-          {/* Next Up */}
-          <div className="bg-[#0f1117] border border-[#1e2535] rounded-2xl p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <ArrowRight className="w-4 h-4 text-emerald-400" />
-              <h3 className="font-semibold text-white text-sm">Next Up</h3>
-            </div>
-            {nextIncompleteDay ? (
-              <div>
-                <div className="text-xs text-slate-500 mb-1">Day {nextIncompleteDay.day} · Week {nextIncompleteDay.week}</div>
-                <p className="text-slate-200 text-sm font-medium mb-2">{nextIncompleteDay.systemDesignTask}</p>
-                <p className="text-slate-500 text-sm">{nextIncompleteDay.dsaTask}</p>
               </div>
-            ) : (
-              <div className="text-emerald-400 font-bold">🎉 All days complete!</div>
             )}
           </div>
         </div>
+
       </div>
     </AppShell>
   )
 }
 
-function StatCard({ label, value, sub, color, icon }: { label: string; value: string; sub: string; color: string; icon: React.ReactNode }) {
+/* ──────────────────────────────────────────────────────
+   Sub-components
+   ────────────────────────────────────────────────────── */
+
+/** Responsive wrapper that picks orbit size based on viewport */
+function OrbitSystemResponsive(props: {
+  currentDay: number
+  daysRemaining: number
+  planets: PlanetModule[]
+}) {
+  const [size, setSize] = useState(420)
+
+  useEffect(() => {
+    function update() {
+      const w = window.innerWidth
+      if (w < 480) setSize(300)
+      else if (w < 768) setSize(340)
+      else if (w < 1024) setSize(380)
+      else setSize(440)
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
+
+  return <OrbitSystem {...props} size={size} />
+}
+
+function Pill({ icon, label, sub, accent }: {
+  icon: React.ReactNode
+  label: string
+  sub: string
+  accent?: boolean
+}) {
   return (
-    <div className="bg-[#0f1117] border border-[#1e2535] rounded-2xl p-4">
-      <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-2">
-        {icon}
-        {label}
-      </div>
-      <div className={`text-2xl font-black mb-0.5 ${color}`}>{value}</div>
-      <div className="text-slate-500 text-xs">{sub}</div>
+    <div
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
+      style={{
+        background: accent ? 'rgba(232,168,56,0.10)' : '#111111',
+        border: accent ? '1px solid rgba(232,168,56,0.22)' : '1px solid #1A1A1A',
+        color: accent ? '#E8A838' : '#9A9494',
+      }}
+    >
+      {icon}
+      <span className="font-bold" style={{ color: accent ? '#E8A838' : '#F0EDED' }}>{label}</span>
+      <span style={{ color: '#5C5757' }}>{sub}</span>
     </div>
   )
 }
 
-function ProgressRing({ progress, size = 80 }: { progress: number; size?: number }) {
-  const radius = (size - 8) / 2
-  const circumference = 2 * Math.PI * radius
-  const strokeDashoffset = circumference - (progress / 100) * circumference
-
+function StatCard({
+  label, value, sub, color, icon, href, max,
+}: {
+  label: string
+  value: number
+  sub: string
+  color: string
+  icon: React.ReactNode
+  href: string
+  max?: number
+}) {
+  const pct = max ? Math.min(Math.round((value / max) * 100), 100) : null
   return (
-    <svg width={size} height={size} className="-rotate-90">
-      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#1e2535" strokeWidth="4" />
-      <circle
-        cx={size / 2} cy={size / 2} r={radius}
-        fill="none" stroke="url(#grad)" strokeWidth="4"
-        strokeLinecap="round"
-        strokeDasharray={circumference}
-        strokeDashoffset={strokeDashoffset}
-        style={{ transition: 'stroke-dashoffset 0.8s ease' }}
-      />
-      <defs>
-        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#3b82f6" />
-          <stop offset="100%" stopColor="#8b5cf6" />
-        </linearGradient>
-      </defs>
-      <text
-        x={size / 2} y={size / 2}
-        textAnchor="middle" dominantBaseline="middle"
-        className="rotate-90 fill-white text-sm font-bold"
-        style={{ transform: `rotate(90deg)`, transformOrigin: `${size / 2}px ${size / 2}px`, fontSize: '14px', fontWeight: 700 }}
-      >
-        {progress}%
-      </text>
-    </svg>
+    <Link
+      href={href}
+      className="block p-5 rounded-2xl group transition-all"
+      style={{ background: '#0F0F0F', border: '1px solid #1A1A1A' }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = `${color}30`
+        e.currentTarget.style.background = '#111111'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = '#1A1A1A'
+        e.currentTarget.style.background = '#0F0F0F'
+      }}
+    >
+      <div className="flex items-center gap-1.5 mb-3" style={{ color: '#3A3A3A' }}>
+        <div style={{ color }}>{icon}</div>
+        <span className="text-xs font-semibold uppercase tracking-wider">{label}</span>
+      </div>
+      <div className="text-3xl font-black mb-0.5" style={{ color }}>
+        {value}
+      </div>
+      <div className="text-xs mb-3" style={{ color: '#5C5757' }}>{sub}</div>
+      {pct !== null && (
+        <div className="h-1 rounded-full overflow-hidden" style={{ background: '#1A1A1A' }}>
+          <div
+            className="h-full rounded-full transition-all duration-700"
+            style={{ width: `${pct}%`, background: color }}
+          />
+        </div>
+      )}
+    </Link>
   )
 }
 
-function OnboardingCard() {
+/* ── Onboarding card (shown when no start_date) ── */
+function OrbitOnboarding() {
   const { profile, updateProfile } = useAuth()
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0])
   const [saving, setSaving] = useState(false)
@@ -505,27 +652,72 @@ function OnboardingCard() {
   }
 
   return (
-    <div className="max-w-lg mx-auto pt-12">
-      <div className="bg-[#0f1117] border border-blue-500/30 rounded-2xl p-8 text-center">
-        <div className="text-5xl mb-4">🚀</div>
-        <h2 className="text-2xl font-bold text-white mb-2">Welcome, {profile?.username?.split(' ')[0] ?? 'there'}!</h2>
-        <p className="text-slate-400 mb-6">Set your Day 1 start date to begin your 90-day journey. This determines which day you&apos;re on in the roadmap.</p>
-        <div className="text-left mb-6">
-          <label className="block text-sm font-medium text-slate-300 mb-2">Start Date</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={e => setStartDate(e.target.value)}
-            className="w-full bg-[#161b26] border border-[#1e2535] text-white rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition-colors"
+    <div className="min-h-[70vh] flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        {/* Decorative orbit rings */}
+        <div className="relative flex items-center justify-center mb-8">
+          <div
+            className="absolute w-48 h-48 rounded-full"
+            style={{ border: '1px dashed rgba(232,168,56,0.12)' }}
           />
+          <div
+            className="absolute w-32 h-32 rounded-full"
+            style={{ border: '1px dashed rgba(232,168,56,0.20)' }}
+          />
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, #E8A838, #D4761C)',
+              boxShadow: '0 0 40px rgba(232,168,56,0.30)',
+            }}
+          >
+            <Rocket className="w-8 h-8 text-[#0C0C0C]" />
+          </div>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50"
+
+        <div
+          className="p-8 rounded-2xl text-center"
+          style={{
+            background: '#0F0F0F',
+            border: '1px solid rgba(232,168,56,0.18)',
+          }}
         >
-          {saving ? 'Saving...' : 'Start My 90-Day Journey'}
-        </button>
+          <h2 className="text-2xl font-black mb-2" style={{ color: '#F0EDED' }}>
+            Launch Your Orbit
+          </h2>
+          <p className="text-sm mb-8" style={{ color: '#9A9494' }}>
+            Welcome{profile?.username ? `, ${profile.username.split(' ')[0]}` : ''}! Set your Day 1 start date to
+            begin the 90-day mission. This determines your daily roadmap position.
+          </p>
+
+          <div className="text-left mb-6">
+            <label className="block text-xs font-bold tracking-widest uppercase mb-2" style={{ color: '#5C5757' }}>
+              Day 1 — Start Date
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+              className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-colors"
+              style={{ background: '#0A0A0A', border: '1px solid #2A2A2A', color: '#F0EDED' }}
+              onFocus={e => (e.currentTarget.style.borderColor = 'rgba(232,168,56,0.50)')}
+              onBlur={e => (e.currentTarget.style.borderColor = '#2A2A2A')}
+            />
+          </div>
+
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full font-bold py-3.5 rounded-xl transition-all disabled:opacity-50"
+            style={{
+              background: 'linear-gradient(135deg, #E8A838, #D4761C)',
+              color: '#0C0C0C',
+              boxShadow: '0 4px 20px rgba(232,168,56,0.25)',
+            }}
+          >
+            {saving ? 'Launching...' : '🚀 Start My 90-Day Mission'}
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -123,17 +123,17 @@ export default function PortfolioPage() {
     <AppShell>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-black text-white flex items-center gap-2">
-            <FolderGit2 className="w-6 h-6 text-emerald-400" />
+          <h1 className="text-2xl font-black flex items-center gap-2" style={{ color: '#F0EDED' }}>
+            <FolderGit2 className="w-6 h-6" style={{ color: '#E8A838' }} />
             GitHub Portfolio
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Track your <code className="text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded text-xs">system-design-interview-prep</code> GitHub repository
+          <p className="text-sm mt-1" style={{ color: '#9A9494' }}>
+            Track your <code style={{ color: '#E8A838', background: 'rgba(232,168,56,0.08)', padding: '1px 6px', borderRadius: 4, fontSize: '11px' }}>system-design-interview-prep</code> GitHub repository
           </p>
         </div>
 
         {/* CTA to create repo */}
-        <div className="bg-gradient-to-br from-emerald-600/10 to-cyan-600/10 border border-emerald-500/20 rounded-2xl p-5 flex items-center justify-between gap-4">
+        <div className="bg-gradient-to-br from-[#E8A838]/10 to-[#D4761C]/10 border border-[#E8A838]/20 rounded-2xl p-5 flex items-center justify-between gap-4">
           <div>
             <p className="font-semibold text-white text-sm mb-1">Create your public portfolio repo</p>
             <p className="text-slate-400 text-xs">A public GitHub repo showcasing your system design work makes a strong impression on interviewers.</p>
@@ -150,15 +150,15 @@ export default function PortfolioPage() {
         </div>
 
         {/* Overall progress */}
-        <div className="bg-[#0f1117] border border-[#1e2535] rounded-xl p-4">
+        <div className="p-4" style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 12 }}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-slate-300">Portfolio Completion</span>
-            <span className="text-sm font-bold text-emerald-400">{completedItems}/{totalItems} items</span>
+            <span className="text-sm font-semibold" style={{ color: '#9A9494' }}>Portfolio Completion</span>
+            <span className="text-sm font-bold" style={{ color: '#E8A838' }}>{completedItems}/{totalItems} items</span>
           </div>
-          <div className="h-2 bg-[#1e2535] rounded-full overflow-hidden">
+          <div className="h-2 rounded-full overflow-hidden" style={{ background: '#1F1F1F' }}>
             <div
-              className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full transition-all duration-700"
-              style={{ width: `${Math.round((completedItems / totalItems) * 100)}%` }}
+              className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${Math.round((completedItems / totalItems) * 100)}%`, background: 'linear-gradient(90deg, #E8A838, #D4761C)' }}
             />
           </div>
         </div>
@@ -170,21 +170,21 @@ export default function PortfolioPage() {
             const folderData = progressData[folder.key] ?? {}
 
             return (
-              <div key={folder.key} className="bg-[#0f1117] border border-[#1e2535] rounded-2xl p-5">
+              <div key={folder.key} className="p-5" style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 16 }}>
                 <div className="flex items-center gap-3 mb-4">
                   <span className="text-2xl">{folder.icon}</span>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-white text-sm">{folder.title}</h3>
-                    <p className="text-slate-500 text-xs truncate">{folder.description}</p>
+                    <h3 className="font-bold text-sm" style={{ color: '#F0EDED' }}>{folder.title}</h3>
+                    <p className="text-xs truncate" style={{ color: '#5C5757' }}>{folder.description}</p>
                   </div>
-                  <span className="text-xs font-bold text-emerald-400 flex-shrink-0">{progress.done}/{progress.total}</span>
+                  <span className="text-xs font-bold flex-shrink-0" style={{ color: '#E8A838' }}>{progress.done}/{progress.total}</span>
                 </div>
 
                 {/* Progress bar */}
-                <div className="h-1.5 bg-[#1e2535] rounded-full overflow-hidden mb-4">
+                <div className="h-1.5 rounded-full overflow-hidden mb-4" style={{ background: '#1F1F1F' }}>
                   <div
-                    className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full transition-all"
-                    style={{ width: `${progress.pct}%` }}
+                    className="h-full rounded-full transition-all"
+                    style={{ width: `${progress.pct}%`, background: 'linear-gradient(90deg, #E8A838, #D4761C)' }}
                   />
                 </div>
 

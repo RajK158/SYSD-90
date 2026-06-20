@@ -16,24 +16,36 @@ export default function TopBar({ streak = 0 }: TopBarProps) {
   const currentWeek = getCurrentWeek(profile?.start_date ?? null)
 
   return (
-    <header className="h-14 border-b border-[#1e2535] bg-[#0a0b0e]/80 backdrop-blur-sm sticky top-0 z-20 flex items-center px-4 lg:px-6 gap-4">
+    <header
+      className="h-14 sticky top-0 z-20 flex items-center px-4 lg:px-6 gap-4 backdrop-blur-sm"
+      style={{ borderBottom: '1px solid #1F1F1F', background: 'rgba(12,12,12,0.90)' }}
+    >
       {/* Date */}
       <div className="lg:ml-0 ml-12">
-        <p className="text-slate-400 text-sm">{today}</p>
+        <p className="text-sm font-medium" style={{ color: '#5C5757' }}>{today}</p>
       </div>
 
       {/* Day / Week pills */}
       <div className="flex items-center gap-2 ml-auto">
-        <span className="hidden sm:flex items-center gap-1.5 bg-[#161b26] border border-[#1e2535] text-slate-300 text-xs font-medium px-3 py-1.5 rounded-full">
-          Day <span className="text-blue-400 font-bold">{currentDay}</span>/90
+        <span
+          className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full"
+          style={{ background: '#161616', border: '1px solid #1F1F1F', color: '#9A9494' }}
+        >
+          Day <span className="font-bold" style={{ color: '#E8A838' }}>{currentDay}</span>/90
         </span>
-        <span className="hidden sm:flex items-center gap-1.5 bg-[#161b26] border border-[#1e2535] text-slate-300 text-xs font-medium px-3 py-1.5 rounded-full">
-          Week <span className="text-purple-400 font-bold">{currentWeek}</span>/12
+        <span
+          className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full"
+          style={{ background: '#161616', border: '1px solid #1F1F1F', color: '#9A9494' }}
+        >
+          Week <span className="font-bold" style={{ color: '#E8A838' }}>{currentWeek}</span>/12
         </span>
 
         {/* Streak */}
         {streak > 0 && (
-          <span className="flex items-center gap-1.5 bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold px-3 py-1.5 rounded-full">
+          <span
+            className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full"
+            style={{ background: 'rgba(232,168,56,0.10)', border: '1px solid rgba(232,168,56,0.20)', color: '#E8A838' }}
+          >
             <Flame className="w-3.5 h-3.5" />
             {streak}
           </span>
@@ -44,10 +56,14 @@ export default function TopBar({ streak = 0 }: TopBarProps) {
           <img
             src={profile.avatar_url}
             alt="Avatar"
-            className="w-7 h-7 rounded-full border border-[#1e2535] object-cover"
+            className="w-7 h-7 rounded-full object-cover"
+            style={{ border: '1px solid #1F1F1F' }}
           />
         ) : (
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center text-[#0C0C0C] text-xs font-bold"
+            style={{ background: 'linear-gradient(135deg, #E8A838, #D4761C)' }}
+          >
             {profile?.username?.[0]?.toUpperCase() ?? 'U'}
           </div>
         )}

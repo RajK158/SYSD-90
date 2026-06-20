@@ -142,41 +142,43 @@ export default function SettingsPage() {
     <AppShell>
       <div className="space-y-6 max-w-2xl">
         <div>
-          <h1 className="text-2xl font-black text-white flex items-center gap-2">
-            <Settings className="w-6 h-6 text-slate-400" />
+          <h1 className="text-2xl font-black flex items-center gap-2" style={{ color: '#F0EDED' }}>
+            <Settings className="w-6 h-6" style={{ color: '#E8A838' }} />
             Settings
           </h1>
-          <p className="text-slate-400 text-sm mt-1">Manage your 90-day journey preferences</p>
+          <p className="text-sm mt-1" style={{ color: '#9A9494' }}>Manage your 90-day journey preferences</p>
         </div>
 
         {/* Journey Settings */}
-        <div className="bg-[#0f1117] border border-[#1e2535] rounded-2xl p-6 space-y-5">
-          <h2 className="font-bold text-white flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-blue-400" />
+        <div className="p-6 space-y-5" style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 16 }}>
+          <h2 className="font-bold flex items-center gap-2" style={{ color: '#F0EDED' }}>
+            <Calendar className="w-4 h-4" style={{ color: '#E8A838' }} />
             Journey Settings
           </h2>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-2">
-              Day 1 Start Date
-            </label>
-            <p className="text-xs text-slate-500 mb-3">This determines which day you&apos;re on in the 90-day roadmap.</p>
+            <label className="block text-sm font-semibold mb-2" style={{ color: '#9A9494' }}>Day 1 Start Date</label>
+            <p className="text-xs mb-3" style={{ color: '#5C5757' }}>This determines which day you&apos;re on in the 90-day roadmap.</p>
             <input
               type="date"
               value={startDate}
               onChange={e => setStartDate(e.target.value)}
-              className="bg-[#161b26] border border-[#1e2535] focus:border-blue-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors"
+              className="text-[#F0EDED] rounded-xl px-4 py-2.5 text-sm outline-none transition-colors"
+              style={{ background: '#0C0C0C', border: '1px solid #2A2A2A' }}
+              onFocus={e => (e.currentTarget.style.borderColor = 'rgba(232,168,56,0.5)')}
+              onBlur={e => (e.currentTarget.style.borderColor = '#2A2A2A')}
             />
           </div>
 
-          <div className="flex items-start justify-between pt-2 border-t border-[#1e2535]">
+          <div className="flex items-start justify-between pt-2" style={{ borderTop: '1px solid #1F1F1F' }}>
             <div>
-              <div className="text-sm font-semibold text-slate-300 mb-1">Flexible Mode (Catch-Up)</div>
-              <p className="text-xs text-slate-500">If you miss days, shows a recovery plan instead of punishing your streak.</p>
+              <div className="text-sm font-semibold mb-1" style={{ color: '#9A9494' }}>Flexible Mode (Catch-Up)</div>
+              <p className="text-xs" style={{ color: '#5C5757' }}>If you miss days, shows a recovery plan instead of punishing your streak.</p>
             </div>
             <button
               onClick={() => setFlexibleMode(!flexibleMode)}
-              className={`w-12 h-6 rounded-full transition-all duration-200 flex-shrink-0 relative mt-1 ${flexibleMode ? 'bg-blue-600' : 'bg-[#1e2535]'}`}
+              className="w-12 h-6 rounded-full transition-all duration-200 flex-shrink-0 relative mt-1"
+              style={{ background: flexibleMode ? '#E8A838' : '#1F1F1F' }}
             >
               <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all duration-200 ${flexibleMode ? 'left-6' : 'left-0.5'}`} />
             </button>
@@ -185,52 +187,55 @@ export default function SettingsPage() {
           <button
             onClick={saveSettings}
             disabled={saving}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
+            className="flex items-center gap-2 font-semibold px-5 py-2.5 rounded-xl text-sm transition-all disabled:opacity-50"
+            style={{ background: 'linear-gradient(135deg, #E8A838, #D4761C)', color: '#0C0C0C', boxShadow: '0 4px 14px rgba(232,168,56,0.22)' }}
           >
             {saved ? <><CheckCircle2 className="w-4 h-4" /> Saved!</> : saving ? 'Saving...' : 'Save Settings'}
           </button>
         </div>
 
         {/* Data Management */}
-        <div className="bg-[#0f1117] border border-[#1e2535] rounded-2xl p-6 space-y-4">
-          <h2 className="font-bold text-white">Data Management</h2>
+        <div className="p-6 space-y-4" style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 16 }}>
+          <h2 className="font-bold" style={{ color: '#F0EDED' }}>Data Management</h2>
 
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={exportData}
               disabled={exporting}
-              className="flex items-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-600/30 text-emerald-400 font-semibold px-5 py-2.5 rounded-xl transition-all text-sm"
+              className="flex items-center gap-2 font-semibold px-5 py-2.5 rounded-xl transition-all text-sm"
+              style={{ background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.18)', color: '#34d399' }}
             >
               <Download className="w-4 h-4" />
               {exporting ? 'Exporting...' : 'Export All Data (JSON)'}
             </button>
 
-            <label className="flex items-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/30 text-blue-400 font-semibold px-5 py-2.5 rounded-xl transition-all text-sm cursor-pointer">
+            <label
+              className="flex items-center gap-2 font-semibold px-5 py-2.5 rounded-xl transition-all text-sm cursor-pointer"
+              style={{ background: 'rgba(232,168,56,0.08)', border: '1px solid rgba(232,168,56,0.18)', color: '#E8A838' }}
+            >
               <Upload className="w-4 h-4" />
               Import Data (JSON)
               <input type="file" accept=".json" onChange={importData} className="hidden" />
             </label>
           </div>
 
-          <p className="text-xs text-slate-500">Export creates a full backup of your journey. Import merges data without overwriting.</p>
+          <p className="text-xs" style={{ color: '#5C5757' }}>Export creates a full backup of your journey. Import merges data without overwriting.</p>
         </div>
 
         {/* Account Info */}
-        <div className="bg-[#0f1117] border border-[#1e2535] rounded-2xl p-6 space-y-3">
-          <h2 className="font-bold text-white">Account</h2>
+        <div className="p-6 space-y-3" style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 16 }}>
+          <h2 className="font-bold" style={{ color: '#F0EDED' }}>Account</h2>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-slate-500">Username</span>
-              <span className="text-slate-300">{profile?.username ?? '—'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Member since</span>
-              <span className="text-slate-300">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : '—'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Streak freezes remaining</span>
-              <span className="text-slate-300">{profile?.streak_freeze_count ?? 3}</span>
-            </div>
+            {[
+              { label: 'Username',            value: profile?.username ?? '—' },
+              { label: 'Member since',         value: profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : '—' },
+              { label: 'Streak freezes remaining', value: profile?.streak_freeze_count ?? 3 },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex justify-between">
+                <span style={{ color: '#5C5757' }}>{label}</span>
+                <span style={{ color: '#9A9494' }}>{value}</span>
+              </div>
+            ))}
           </div>
         </div>
 

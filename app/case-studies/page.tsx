@@ -272,25 +272,25 @@ export default function CaseStudiesPage() {
     <AppShell>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-black text-white flex items-center gap-2">
-            <Server className="w-6 h-6 text-cyan-400" />
+          <h1 className="text-2xl font-black flex items-center gap-2" style={{ color: '#F0EDED' }}>
+            <Server className="w-6 h-6" style={{ color: '#E8A838' }} />
             System Design Case Studies
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-sm mt-1" style={{ color: '#9A9494' }}>
             {completedSections}/{totalSections} sections completed across {CASE_STUDIES.length} case studies
           </p>
         </div>
 
         {/* Overall progress */}
-        <div className="bg-[#0f1117] border border-[#1e2535] rounded-xl p-4">
+        <div className="p-4" style={{ background: '#111111', border: '1px solid #1F1F1F', borderRadius: 12 }}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-slate-300">Overall Progress</span>
-            <span className="text-sm font-bold text-cyan-400">{Math.round((completedSections / totalSections) * 100)}%</span>
+            <span className="text-sm font-semibold" style={{ color: '#9A9494' }}>Overall Progress</span>
+            <span className="text-sm font-bold" style={{ color: '#E8A838' }}>{Math.round((completedSections / totalSections) * 100)}%</span>
           </div>
-          <div className="h-2 bg-[#1e2535] rounded-full overflow-hidden">
+          <div className="h-2 rounded-full overflow-hidden" style={{ background: '#1F1F1F' }}>
             <div
-              className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-700"
-              style={{ width: `${Math.round((completedSections / totalSections) * 100)}%` }}
+              className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${Math.round((completedSections / totalSections) * 100)}%`, background: 'linear-gradient(90deg, #E8A838, #D4761C)' }}
             />
           </div>
         </div>
@@ -306,9 +306,10 @@ export default function CaseStudiesPage() {
                 key={study.key}
                 onClick={() => setSelectedStudy(study.key)}
                 className={cn(
-                  'bg-[#0f1117] border rounded-2xl p-5 text-left transition-all duration-200 card-hover group',
-                  isComplete ? 'border-emerald-500/30' : 'border-[#1e2535] hover:border-[#2d3748]'
+                  'border rounded-2xl p-5 text-left transition-all duration-200 card-hover group',
+                  isComplete ? 'border-emerald-500/30' : 'border-[#1F1F1F] hover:border-[#2A2A2A]'
                 )}
+                style={{ background: '#111111' }}
               >
                 <div className="flex items-start justify-between mb-3">
                   <span className="text-3xl">{study.icon}</span>
@@ -323,13 +324,13 @@ export default function CaseStudiesPage() {
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500">Progress</span>
-                    <span className={`text-xs font-bold ${isComplete ? 'text-emerald-400' : 'text-slate-400'}`}>{progress.pct}%</span>
+                    <span className="text-xs" style={{ color: '#5C5757' }}>Progress</span>
+                    <span className="text-xs font-bold" style={{ color: isComplete ? '#34d399' : '#E8A838' }}>{progress.pct}%</span>
                   </div>
-                  <div className="h-1.5 bg-[#1e2535] rounded-full overflow-hidden">
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#1F1F1F' }}>
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ${isComplete ? 'bg-emerald-500' : 'bg-gradient-to-r from-cyan-500 to-blue-500'}`}
-                      style={{ width: `${progress.pct}%` }}
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${progress.pct}%`, background: isComplete ? '#34d399' : 'linear-gradient(90deg, #E8A838, #D4761C)' }}
                     />
                   </div>
                 </div>
